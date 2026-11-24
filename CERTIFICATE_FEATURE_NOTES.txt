@@ -1,0 +1,16 @@
+LEARNLOOP CERTIFICATES
+
+Formal certificate layout:
+- LearnLoop branding
+- Certificate of Completion heading
+- Student name
+- Course name only (no instructor/offered-by wording)
+- Completion date
+- Unique certificate ID and verification URL
+- Print / Save as PDF
+
+Learn Basics certificate is issued after all 9 lessons are completed while logged in.
+Peer exchange certificates name the skill/course each student learned.
+Both students must upload an explanation video and each mark the exchange complete.
+Verification: /verify/CODE. Certificate page: /certificate/CODE.
+Keep your existing Backend/learnloop.db. New tables are created automatically.
