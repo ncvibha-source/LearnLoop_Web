@@ -1,0 +1,18 @@
+LearnLoop Vercel + Supabase PostgreSQL deployment
+
+1. Run the complete Backend/schema.sql once in the Supabase SQL Editor.
+2. In Vercel Project Settings > Environment Variables, add:
+   DATABASE_URL = Supabase PostgreSQL connection string (use the Session pooler if direct IPv6 is unavailable)
+   SECRET_KEY = a long random secret value
+3. Redeploy the Vercel project after adding the variables.
+
+The Flask backend now uses PostgreSQL for all 11 application tables:
+users, profiles, skills, learning_sessions, notes, reflections,
+peer_exchanges, exchange_videos, lesson_completions,
+exchange_completions, certificates.
+
+IMPORTANT:
+- Existing SQLite accounts are not automatically copied to Supabase. The new hosted database starts empty unless data is migrated separately.
+- Video file bytes are still written to the local upload directory. Vercel's local filesystem is temporary, so video playback/uploads need a separate persistent storage migration to Supabase Storage before relying on them publicly.
+- Do not commit DATABASE_URL or SECRET_KEY to GitHub.
+- Keep your local SQLite database as a backup.

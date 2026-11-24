@@ -1,0 +1,24 @@
+LEARNLOOP - SUPABASE POSTGRESQL DEPLOYMENT
+
+This package is configured to use Supabase PostgreSQL through DATABASE_URL.
+The Supabase tables are created by Backend/schema.sql (the schema already run
+in the Supabase SQL Editor should match this file).
+
+Before deploying to Vercel:
+1. Keep the project folder structure intact.
+2. In Vercel > Project Settings > Environment Variables, set:
+   DATABASE_URL = Supabase Session Pooler URI (Secret)
+   SECRET_KEY = a long random secret value (Secret)
+3. Set both for Production. Also add Preview/Development if you use those
+   deployment environments.
+4. Redeploy after pushing the updated files to the connected GitHub repository.
+
+IMPORTANT:
+- Do not commit DATABASE_URL or SECRET_KEY to GitHub.
+- Existing users in the old SQLite database are not copied automatically.
+  New registrations will be stored in Supabase.
+- This update makes account/profile/session/learning data use PostgreSQL.
+- Video files are still saved to the local uploads directory. Vercel's
+  filesystem is temporary, so video persistence needs a separate Supabase
+  Storage integration. Do not assume uploaded videos are permanently stored.
+- Keep your original SQLite database and project backup untouched.
