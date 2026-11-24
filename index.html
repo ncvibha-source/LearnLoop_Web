@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LearnLoop — Learn. Teach. Exchange. Grow.</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+<a class="brand" href="#home"><span class="brand-mark">↻</span> LearnLoop</a>
+<nav id="siteNav"><a href="#home">Home</a><a href="#how">How it works</a><a href="#about">About</a></nav>
+<div class="top-actions" id="topActions"><button class="btn ghost" data-open="login">Log in</button><button class="btn primary" data-open="signup">Join LearnLoop</button></div>
+</header>
+
+<main>
+<section class="page active" id="home">
+<div class="hero"><div>
+<span class="eyebrow">● A STUDENT-POWERED LEARNING COMMUNITY</span>
+<h1>Learn a skill.<br><span>Share what you know.</span></h1>
+<p>Your next skill could be one conversation away. Discover peers, exchange knowledge, and grow together—one skill at a time.</p>
+<div class="actions"><button class="btn primary large" data-open="signup">Start learning ↗</button><a class="btn outline large" href="#explore">Explore skills</a></div>
+<p class="note">👩🏻‍💻 👨🏽‍🎨 🧑🏻‍🏫 &nbsp; Learn from peers. Become a peer mentor, too.</p>
+</div><div class="hero-art"><div class="circle">↻<b>LearnLoop</b><small>Learn • Teach • Grow</small></div><div class="float one">✦ UI / UX Design<br><small>Skill exchange</small></div><div class="float two">✓ Learning progress<br><small>You're building momentum!</small></div><div class="float three">🤝 Learn together<br><small>Grow through sharing</small></div></div></div>
+<div class="stats"><span><b>01</b> Discover skills</span><span><b>02</b> Connect with peers</span><span><b>03</b> Learn by doing</span><span><b>04</b> Share your growth</span></div>
+
+<section class="inner" id="how"><span class="eyebrow">THE LEARNLOOP CYCLE</span><h2>Learning works better <span>together.</span></h2><p>Turn what you know into something someone else can learn—and discover what you want to know.</p>
+<div class="cards four"><article><b>01</b><i>⌕</i><h3>Discover</h3><p>Find peers who have the skills you want to learn.</p></article><article><b>02</b><i>↗</i><h3>Enter & begin</h3><p>New to a skill? Start with beginner-friendly resources.</p></article><article><b>03</b><i>⇄</i><h3>Exchange</h3><p>Connect and share knowledge through peer learning.</p></article><article><b>04</b><i>✧</i><h3>Demonstrate</h3><p>Practise, explain what you learned, and record progress.</p></article></div></section>
+<section class="inner"><span class="eyebrow">MADE FOR MUTUAL LEARNING</span><h2>One community.<br><span>Many ways to grow.</span></h2><div class="cards four"><article><i>⇄</i><h3>Reciprocal learning</h3><p>Learn one skill while sharing another.</p></article><article><i>🌱</i><h3>Beginner-to-contributor</h3><p>Start from the basics, build confidence, then contribute.</p></article><article><i>↗</i><h3>Reverse-teaching challenge</h3><p>Explain what you learned to reflect on your understanding.</p></article><article><i>▤</i><h3>Your skill portfolio</h3><p>Keep a record of skills, sessions and feedback.</p></article></div></section>
+</section>
+
+<section class="page" id="explore"><div class="heading"><span class="eyebrow">SKILL DISCOVERY</span><h1>Explore <span>skills.</span></h1><p>Discover skills students can learn and share.</p></div>
+<div class="search"><input id="skillSearch" placeholder="Search a skill (e.g. Python, design, speaking)…"><select id="categoryFilter"><option value="all">All categories</option><option value="technology">Technology</option><option value="design">Design</option><option value="communication">Communication</option><option value="creative">Creative</option><option value="academic">Academic</option></select></div>
+<div class="skills" id="skillsGrid"></div><div class="empty hidden" id="noSkills">No skills match your search. Try another keyword.</div></section>
+
+
+
+<section class="page" id="matches">
+  <div class="heading">
+    <span class="eyebrow">PEER-TO-PEER SKILL MATCHING</span>
+    <h1>Find your <span>learning partner.</span></h1>
+    <p>Discover students who can teach you, see what they want to learn, and find opportunities to exchange skills.</p>
+  </div>
+  <div class="match-wrap">
+    <div class="match-search"><input id="matchSearch" placeholder="Search students or skills (e.g. Python, Canva)…"></div>
+    <div class="match-tabs" id="matchTabs">
+      <button class="match-tab active" data-mode="teach_me">Who can teach me</button>
+      <button class="match-tab" data-mode="mutual">Mutual matches</button>
+      <button class="match-tab" data-mode="teach_them">Who I can teach</button>
+    </div>
+    <p class="match-hint" id="matchHint">Students whose teaching skills match the skills you want to learn.</p>
+    <div class="match-grid" id="matchGrid"></div>
+    <div class="empty hidden" id="noMatches">No matches found yet. Add your teaching and learning skills in My Profile, or try another search.</div>
+    <div class="match-profile-prompt" id="matchProfilePrompt" hidden>
+      <b>Add your skills to find relevant peers.</b>
+      <p>Save at least one skill you want to learn or can teach in your profile.</p>
+      <a class="btn primary" href="#profile">Update my profile</a>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="learn">
+  <div class="heading">
+    <span class="eyebrow">YOUR SELF-PACED LEARNING SPACE</span>
+    <h1>Learn the <span>basics.</span></h1>
+    <p>Explore beginner-friendly lessons, practise at your own pace, and build confidence. Learning here is optional—if you already know a skill, you can add it to your teaching profile straight away.</p>
+  </div>
+  <div class="learn-intro">
+    <div><strong id="learnProgressCount">0</strong><span> lessons completed</span></div>
+    <div class="learn-progress"><span id="learnProgressBar"></span></div>
+    <small>Complete all beginner lessons while logged in to earn your Learn Basics certificate.</small><p><a class="btn outline" href="#certificates">View my certificates</a></p>
+  </div>
+  <div class="learn-controls">
+    <input id="lessonSearch" placeholder="Search lessons (e.g. Python, passwords, Figma)…">
+    <div class="learn-filters" id="learnFilters">
+      <button class="learn-filter active" data-category="all">All topics</button>
+      <button class="learn-filter" data-category="programming">Programming</button>
+      <button class="learn-filter" data-category="cybersecurity">Cybersecurity</button>
+      <button class="learn-filter" data-category="design">Design</button>
+      <button class="learn-filter" data-category="soft">Soft skills</button>
+    </div>
+  </div>
+  <div class="lesson-grid" id="lessonGrid"></div>
+  <div class="empty hidden" id="noLessons">No lessons found. Try another search.</div>
+  <div class="learn-note"><b>Remember:</b> Learn Basics is one path into the community, not a requirement. You can learn, teach, or do both at the same time.</div>
+</section>
+
+<section class="page" id="about"><div class="heading"><span class="eyebrow">ABOUT LEARNLOOP</span><h1>Knowledge is better <span>shared.</span></h1><p>LearnLoop is a student-centric peer-to-peer skill exchange platform built around mutual participation and skill development.</p></div><div class="about"><article><h2>Our idea</h2><p>Students have different skills and interests, but finding someone to learn from or share knowledge with can be difficult. LearnLoop makes peer skill exchange discoverable, structured, inclusive and measurable.</p></article><article><h2>Our core belief</h2><p>Every student can be a learner in one area and a teacher in another. Learning isn't a one-way journey—it can loop.</p><div class="big">↻</div></article></div></section>
+
+<section class="page" id="dashboard">
+<div class="heading"><span class="eyebrow">STUDENT DASHBOARD</span><h1>Welcome, <span id="welcomeName">learner</span> 👋</h1><p>What would you like to do today?</p></div>
+<div class="dashboard-actions">
+  <a class="dashboard-action" href="#matches"><span class="dashboard-icon">♧</span><h3>Find Peers</h3><p>Find students who can teach you and discover mutual skill matches.</p><span class="dashboard-link">Find a learning partner ↗</span></a>
+  <a class="dashboard-action" href="#explore"><span class="dashboard-icon">⌕</span><h3>Explore Skills</h3><p>Browse skills shared by students in the LearnLoop community.</p><span class="dashboard-link">Explore skills ↗</span></a>
+  <a class="dashboard-action" href="#learn"><span class="dashboard-icon">▤</span><h3>Learn Basics</h3><p>Build your foundations with optional beginner-friendly lessons.</p><span class="dashboard-link">Start learning ↗</span></a>
+  <a class="dashboard-action" href="#profile"><span class="dashboard-icon">↗</span><h3>Teach a Skill</h3><p>Add the skills you already know and share them with other students.</p><span class="dashboard-link">Add your skills ↗</span></a>
+</div>
+<div class="dashstats"><div>Skills I can teach<strong id="teachCount">0</strong></div><div>Skills I want to learn<strong id="learnCount">0</strong></div><div>Sessions completed<strong id="sessionCount">0</strong></div><div>Reflections<strong id="reflectionCount">0</strong></div></div>
+<div class="panel"><h3>Your learning activity</h3><p>Keep your profile updated to get better peer matches. You can learn, teach, or do both at your own pace.</p><button class="btn primary" data-open="profile">View my profile ↗</button> <a class="btn outline" href="#workspace">My workspace ↗</a></div></section>
+
+
+<section class="page" id="certificates"><div class="heading"><span class="eyebrow">YOUR ACHIEVEMENTS</span><h1>My <span>Certificates.</span></h1><p>View and verify your LearnLoop achievements.</p></div><div id="certificateList" class="exchange-list">Loading certificates…</div></section>
+<section class="page" id="exchanges"><div class="heading"><span class="eyebrow">TWO-WAY PEER LEARNING</span><h1>My skill <span>exchanges.</span></h1><p>Agree to exchange skills, then each of you can upload a recorded explanation for the other to watch.</p></div><div class="exchange-guidance"><b>How it works:</b> Send an exchange request → your peer accepts → both students upload videos → both watch and learn.</div><div id="exchangeList" class="exchange-list"></div></section>
+
+<section class="page" id="profile"><div class="heading"><span class="eyebrow">STUDENT PROFILE</span><h1>Build your <span>skill profile.</span></h1><p>Tell the community what you can teach and what you want to learn.</p></div>
+<div class="formcard"><label>Display name<input id="profileName"></label><label>Skills you can teach<input id="teachSkills" placeholder="e.g. HTML, Canva, public speaking"></label><label>Skills you want to learn<input id="learnSkills" placeholder="e.g. Python, video editing"></label><label>About you<textarea id="profileBio" placeholder="Your interests and learning goals"></textarea></label><button class="btn primary" id="saveProfile">Save profile</button></div></section>
+
+<section class="page" id="workspace"><div class="heading"><span class="eyebrow">LEARNING WORKSPACE</span><h1>Make learning <span>active.</span></h1><p>Plan sessions, save notes and reflect on your learning.</p></div>
+<div class="workgrid"><div class="formcard"><h2>Plan a peer session</h2><label>Session skill<input id="sessionSkill" placeholder="e.g. Intro to Python"></label><label>Learning goal<textarea id="sessionGoal"></textarea></label><button class="btn primary" id="createSession">Create session</button></div>
+<div class="formcard"><h2>Session notes</h2><textarea id="notes" placeholder="What did you cover? What will you practise next?"></textarea><button class="btn outline" id="saveNotes">Save notes</button></div></div>
+<div class="formcard"><h2>Reverse-teaching challenge</h2><p>Explain a topic you learned in your own words.</p><textarea id="reflection"></textarea><button class="btn primary" id="saveReflection">Save reflection</button></div></section>
+
+<section class="page" id="passport"><div class="heading"><span class="eyebrow">YOUR SKILL PORTFOLIO</span><h1>Skill <span>Passport.</span></h1><p>Your growth, one skill at a time.</p></div><div class="passport"><h2>↻ LearnLoop</h2><h3 id="passportUser">Learner Profile</h3><div class="dashstats"><div>Skills offered<strong id="passportTeach">0</strong></div><div>Skills explored<strong id="passportLearn">0</strong></div><div>Sessions<strong id="passportSessions">0</strong></div></div><p id="passportSkills">Add skills through your profile to see them here.</p></div></section>
+</main>
+
+<footer><b>↻ LearnLoop</b><span>Learning becomes stronger when knowledge is shared.</span><span>© 2026 LearnLoop · Learn. Teach. Exchange. Grow.</span></footer>
+
+<div class="modal" id="modal"><div class="modalbox"><button class="close" id="close">×</button><div class="mark">↻</div><h2 id="modalTitle">Join LearnLoop</h2><p id="modalSub">Create an account to begin your skill exchange.</p><form id="authForm"><label id="nameWrap">Full name<input id="authName" placeholder="Your name"></label><label>Email<input id="authEmail" type="email" required></label><label>Password<input id="authPassword" type="password" minlength="8" required></label><button class="btn primary full" id="authSubmit">Create account</button></form><p id="switchText">Already have an account? <button type="button" id="switchMode">Log in</button></p></div></div>
+
+<div class="lesson-modal" id="lessonModal" aria-hidden="true">
+  <div class="lesson-modal-box">
+    <button class="close" id="closeLesson" aria-label="Close">×</button>
+    <span class="eyebrow" id="lessonCategoryLabel">LESSON</span>
+    <h2 id="lessonTitle">Lesson title</h2>
+    <div id="lessonBody" class="lesson-body"></div>
+    <div id="lessonQuiz" class="lesson-quiz"></div>
+    <p class="lesson-feedback" id="lessonFeedback" aria-live="polite"></p>
+    <div class="lesson-modal-actions">
+      <button class="btn outline" id="checkAnswer">Check answer</button>
+      <button class="btn primary" id="completeLesson" disabled>Mark lesson complete</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body></html>
