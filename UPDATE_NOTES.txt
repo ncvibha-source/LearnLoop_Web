@@ -1,0 +1,54 @@
+LEARNLOOP UPDATE
+
+This update changes the public and logged-in navigation.
+
+BEFORE LOGIN:
+- Home
+- How it works
+- About
+- Log in
+- Join LearnLoop
+
+AFTER LOGIN:
+- Dashboard
+- Find Peers
+- Explore Skills
+- Learn Basics
+- Teach a Skill
+- My Workspace
+- My Profile
+- Log out
+
+Private student pages redirect to Home if the visitor is not logged in.
+
+IMPORTANT DATABASE NOTE:
+This ZIP intentionally does NOT include Backend/learnloop.db.
+Keep your existing Backend/learnloop.db in your project folder. Do not delete it
+or replace it. The Flask app will continue using that database.
+
+LOGIN NOTE:
+This update does not bypass passwords or automatically sign in an account.
+If the login still says "Invalid email or password", the email/password pair
+does not match the account record in the database currently used by Flask.
+Use the same email and password used when that account was created. If you
+cannot remember the password, do not delete the database; we should recover
+access safely after checking the account record.
+
+
+LOGIN/JOIN BUTTON FIX:
+The header is rebuilt when login state is checked. Header button clicks are
+now handled through delegated click handling, so the newly rendered Log in
+and Join LearnLoop buttons continue to open the authentication modal.
+
+
+PEER VIDEO EXCHANGE FEATURE
+- Students can send a skill-exchange request to a peer from Find Peers.
+- The invited peer must accept before either student can upload videos.
+- Both accepted participants can upload and watch explanation videos.
+- Supported formats: MP4, WEBM, MOV, M4V; maximum upload size 100 MB.
+- Video files are stored locally in Backend/uploads and video access is restricted
+  through authenticated exchange-participant routes.
+- Back up and preserve Backend/learnloop.db. New exchange tables are created
+  automatically when the Flask app starts.
+- Local file storage is suitable for a local demo. For public hosting, configure
+  private cloud object storage and persistent storage before deployment.
