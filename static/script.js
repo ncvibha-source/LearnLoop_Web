@@ -234,9 +234,12 @@ async function loadExchanges(){
 async function loadCertificates(){
  const host=$("#certificateList");if(!host)return;host.innerHTML="<p>Loading your certificates…</p>";
  try{
-  // Recover course completions stored in this browser before server-side certificates were added.
+  // Recover older browser-saved completions through the existing course completion endpoint.
   const savedProgress=completedLessonIds();
-  if(savedProgress.length){await api("/api/lessons/sync-completions",{method:"POST",body:JSON.stringify({lesson_ids:savedProgress})});}
+  for(const lessonId of savedProgress){
+   try{await api(`/api/lessons/${encodeURIComponent(lessonId)}/complete`,{method:"POST",body:JSON.stringify({})});}
+   catch(syncError){console.warn("Could not sync saved course:",lessonId,syncError.message);}
+  }
   const d=await api("/api/certificates");host.innerHTML="";
  if(!d.certificates.length){host.innerHTML=`<div class="empty">No certificates yet. Complete any Learn Basics course or finish a two-way peer exchange to earn a certificate.</div>`;return;}
  d.certificates.forEach(c=>{const card=document.createElement("article");card.className="exchange-card";const title=document.createElement("h3");title.textContent=c.title;const code=document.createElement("p");code.textContent="Verification code: "+c.code;const link=document.createElement("a");link.className="btn primary";link.href="/certificate/"+encodeURIComponent(c.code);link.target="_blank";link.rel="noopener";link.textContent="View / Print certificate";const verify=document.createElement("a");verify.href="/verify/"+encodeURIComponent(c.code);verify.target="_blank";verify.rel="noopener";verify.textContent="Verify certificate";card.append(title,code,link,document.createTextNode(" "),verify);host.appendChild(card)});
