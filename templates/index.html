@@ -6,16 +6,12 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<header class="topbar" id="appHeader">
- <a class="brand" href="#home"><span class="brand-mark">↻</span> LearnLoop</a>
- <nav id="siteNav" aria-label="Main navigation">
-  <a href="#home">Home</a><a href="#how">How it works</a><a href="#about">About</a>
- </nav>
- <div class="top-actions" id="topActions">
-  <button class="btn ghost" data-open="login">Log in</button>
-  <button class="btn primary" data-open="signup">Join LearnLoop</button>
- </div>
+<header class="topbar">
+<a class="brand" href="#home"><span class="brand-mark">↻</span> LearnLoop</a>
+<nav id="siteNav"><a href="#home">Home</a><a href="#how">How it works</a><a href="#about">About</a></nav>
+<div class="top-actions" id="topActions"><button class="btn ghost" data-open="login">Log in</button><button class="btn primary" data-open="signup">Join LearnLoop</button></div>
 </header>
+
 <main>
 <section class="page active" id="home">
 <div class="hero"><div>
