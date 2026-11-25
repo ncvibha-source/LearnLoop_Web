@@ -400,13 +400,30 @@ def issue_certificate(conn, uid, ctype, refid, title):
 @app.post("/api/lessons/<lesson_id>/complete")
 def complete_basic_lesson(lesson_id):
     user=current_user()
-    if not user: return jsonify(success=False,message="Log in to save certificate progress."),401
-    if lesson_id not in BASIC_LESSON_IDS: return jsonify(success=False,message="Unknown lesson."),404
-    conn=db(); conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id)); conn.commit()
+    if not user: return jsonify(success=False,message="Log in to save course progress and receive a certificate."),401
+    lesson_titles = {
+        "html": "HTML: Build your first web page",
+        "python": "Python: Variables, data and control flow",
+        "sql": "SQL: Tables, queries and relationships",
+        "security": "Cybersecurity: Threats and safe practices",
+        "passwords": "Strong passwords, password managers and MFA",
+        "figma": "UI/UX: User research, wireframes and usability",
+        "canva": "Visual design: Layout, typography and contrast",
+        "speaking": "Public speaking: Plan, present and improve",
+        "communication": "Communication: Listening, questions and feedback"
+    }
+    if lesson_id not in lesson_titles:
+        return jsonify(success=False,message="Unknown course."),404
+    conn=db()
+    conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
+    course_code=issue_certificate(conn,user["id"],"basic_course",lesson_id,lesson_titles[lesson_id])
     count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
-    code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(BASIC_LESSON_IDS) else None
-    conn.commit(); conn.close()
-    return jsonify(success=True,completed=count,total=len(BASIC_LESSON_IDS),certificate_code=code,message="Lesson progress saved to your account.")
+    overall_code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(lesson_titles) else None
+    conn.commit()
+    conn.close()
+    return jsonify(success=True,completed=count,total=len(lesson_titles),course_certificate_code=course_code,
+                   overall_certificate_code=overall_code,message="Course completed. Your individual course certificate is ready.")
+
 
 @app.get("/api/certificates")
 def my_certificates():
