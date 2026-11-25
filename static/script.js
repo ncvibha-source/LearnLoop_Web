@@ -8,21 +8,14 @@ const publicPages = ["home", "how", "about"];
 function renderNavigation() {
  const nav=$("#siteNav"), actions=$("#topActions");
  if(!nav||!actions)return;
- document.body.classList.toggle("logged-in",isLoggedIn);
  if(isLoggedIn){
-  const links=[
-   ["dashboard","Dashboard"],["matches","Find Peers"],["explore","Explore Skills"],
-   ["learn","Learn Basics"],["profile","Teach a Skill"],["workspace","My Workspace"],
-   ["exchanges","My Skill Exchanges"],["certificates","Certificates"],["profile","My Profile"]
-  ];
-  nav.innerHTML=links.map(([id,label])=>`<a href="#${id}" data-page-link="${id}">${label}</a>`).join("");
+  nav.innerHTML='<a href="#dashboard">Dashboard</a><a href="#matches">Find Peers</a><a href="#explore">Explore Skills</a><a href="#learn">Learn Basics</a><a href="#profile">Teach a Skill</a><a href="#workspace">My Workspace</a><a href="#exchanges">My Skill Exchanges</a><a href="#certificates">Certificates</a><a href="#profile">My Profile</a>';
   actions.innerHTML='<button class="btn ghost" id="logoutBtn" type="button">Log out</button>';
   $("#logoutBtn").onclick=openLogoutConfirmation;
  }else{
-  nav.innerHTML='<a href="#home" data-page-link="home">Home</a><a href="#how" data-page-link="how">How it works</a><a href="#about" data-page-link="about">About</a>';
+  nav.innerHTML='<a href="#home">Home</a><a href="#how">How it works</a><a href="#about">About</a>';
   actions.innerHTML='<button class="btn ghost" data-open="login">Log in</button><button class="btn primary" data-open="signup">Join LearnLoop</button>';
  }
- updateActiveNavigation();
 }
 
 function updateActiveNavigation(){
@@ -86,8 +79,20 @@ async function api(url,opt={}){const r=await fetch(url,{headers:{"Content-Type":
 
 $("#authForm").onsubmit=async e=>{
  e.preventDefault();
+ const submit=$("#authSubmit");submit.disabled=true;submit.textContent=loginMode?"Logging in…":"Creating account…";
  const body={name:$("#authName").value,email:$("#authEmail").value,password:$("#authPassword").value};
- try{const d=await api(loginMode?"/api/login":"/api/signup",{method:"POST",body:JSON.stringify(body)});isLoggedIn=true;renderNavigation();toast(d.message);$("#modal").classList.remove("show");$("#authPassword").value="";location.hash="#dashboard";loadDashboard();}catch(err){toast(err.message)}
+ try{
+  const d=await api(loginMode?"/api/login":"/api/signup",{method:"POST",body:JSON.stringify(body)});
+  isLoggedIn=true;
+  renderNavigation();
+  $("#modal").classList.remove("show");
+  $("#authPassword").value="";
+  toast(d.message||"Welcome to LearnLoop!");
+  location.hash="#dashboard";
+  showPage();
+  await loadDashboard();
+ }catch(err){toast(err.message);}
+ finally{submit.disabled=false;submit.textContent=loginMode?"Log in":"Create account";}
 };
 
 function showPage(){
