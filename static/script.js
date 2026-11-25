@@ -78,7 +78,7 @@ document.addEventListener("click", e => {
 $("#close").onclick=()=>$("#modal").classList.remove("show");
 $("#modal").addEventListener("click",e=>{if(e.target.id==="modal")$("#modal").classList.remove("show")});
 
-async function api(url,opt={}){const r=await fetch(url,{headers:{"Content-Type":"application/json"},...opt});const d=await r.json();if(!r.ok)throw new Error(d.message||"Request failed");return d}
+async function api(url,opt={}){const r=await fetch(url,{headers:{"Content-Type":"application/json"},...opt});const raw=await r.text();let d;try{d=JSON.parse(raw)}catch(_){throw new Error(`Server returned HTML instead of JSON (HTTP ${r.status}). Check the Vercel deployment and API routing.`)}if(!r.ok)throw new Error(d.message||`Request failed (HTTP ${r.status})`);return d}
 
 $("#authForm").onsubmit=async e=>{
  e.preventDefault();
@@ -420,7 +420,7 @@ $("#completeLesson")?.addEventListener("click",async(e)=>{
  $("#lessonFeedback").textContent="Saving your course completion and generating your certificate…";
  $("#lessonFeedback").className="lesson-feedback";
  try{
-  const result=await api("/api/complete-lesson",{method:"POST",body:JSON.stringify({lesson_id:activeLesson.id})});
+  const result=await api("/api/certificates",{method:"POST",body:JSON.stringify({lesson_id:activeLesson.id})});
   if(!result.success)throw new Error(result.message||"The course could not be saved.");
   saveCompletedLesson(activeLesson.id);
   $("#lessonFeedback").textContent=result.message||"Course completed! Your certificate is ready.";
