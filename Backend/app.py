@@ -478,11 +478,13 @@ def complete_exchange(exchange_id):
     conn.execute("INSERT INTO exchange_completions(exchange_id,user_id) VALUES(?,?) ON CONFLICT(exchange_id,user_id) DO NOTHING",(exchange_id,user["id"])); conn.commit()
     done=conn.execute("SELECT COUNT(*) FROM exchange_completions WHERE exchange_id=?",(exchange_id,)).fetchone()[0]
     if done>=2:
-        # Each learner's certificate names the course/skill they learned.
+        # Give each participant a separate certificate for the skill they learned.
+        requester_skill=str(ex["requester_learns"]).strip()
+        peer_skill=str(ex["requester_teaches"]).strip()
         issue_certificate(conn,ex["requester_id"],"peer_exchange",exchange_id,
-                          str(ex["requester_learns"]).strip() + " Course")
+                          f"Peer Skill Exchange: {requester_skill}")
         issue_certificate(conn,ex["peer_id"],"peer_exchange",exchange_id,
-                          str(ex["requester_teaches"]).strip() + " Course")
+                          f"Peer Skill Exchange: {peer_skill}")
     conn.commit(); conn.close()
     return jsonify(success=True,completed_by=done,certificate_ready=done>=2,message="Your completion is recorded. Waiting for the other student." if done<2 else "Both students completed the exchange. Certificates are ready!")
 
