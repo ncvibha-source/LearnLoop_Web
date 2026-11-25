@@ -6,35 +6,37 @@ function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show"
 let isLoggedIn = false;
 const publicPages = ["home", "how", "about"];
 function renderNavigation() {
- const nav=$("#siteNav"), actions=$("#topActions");
- if(!nav||!actions)return;
- if(isLoggedIn){
-  nav.innerHTML='<a href="#dashboard">Dashboard</a><a href="#matches">Find Peers</a><a href="#explore">Explore Skills</a><a href="#learn">Learn Basics</a><a href="#profile">Teach a Skill</a><a href="#workspace">My Workspace</a><a href="#exchanges">My Skill Exchanges</a><a href="#certificates">Certificates</a><a href="#profile">My Profile</a>';
-  actions.innerHTML='<button class="btn ghost" id="logoutBtn" type="button">Log out</button>';
-  $("#logoutBtn").onclick=openLogoutConfirmation;
- }else{
-  nav.innerHTML='<a href="#home">Home</a><a href="#how">How it works</a><a href="#about">About</a>';
-  actions.innerHTML='<button class="btn ghost" data-open="login">Log in</button><button class="btn primary" data-open="signup">Join LearnLoop</button>';
+ const nav = $("#siteNav");
+ const actions = $("#topActions");
+ if (!nav || !actions) return;
+ if (isLoggedIn) {
+  nav.innerHTML = `
+   <a href="#dashboard">Dashboard</a>
+   <a href="#matches">Find Peers</a>
+   <a href="#explore">Explore Skills</a>
+   <a href="#learn">Learn Basics</a>
+   <a href="#profile">Teach a Skill</a>
+   <a href="#workspace">My Workspace</a>
+   <a href="#exchanges">My Skill Exchanges</a>\n   <a href="#certificates">Certificates</a>
+   <a href="#profile">My Profile</a>`;
+  actions.innerHTML = `<button class="btn ghost" id="logoutBtn">Log out</button>`;
+  $("#logoutBtn").onclick = openLogoutConfirmation;
+ } else {
+  nav.innerHTML = `<a href="#home">Home</a><a href="#how">How it works</a><a href="#about">About</a>`;
+  actions.innerHTML = `<button class="btn ghost" data-open="login">Log in</button><button class="btn primary" data-open="signup">Join LearnLoop</button>`;
  }
 }
-
-function updateActiveNavigation(){
- const current=(location.hash.slice(1)||"home");
- document.querySelectorAll("[data-page-link]").forEach(link=>{
-  const target=link.dataset.pageLink;
-  link.classList.toggle("active",target===current || (current==="home"&&target==="home"));
- });
-}
 function openLogoutConfirmation(){
- const modal=$("#logoutConfirmModal");if(!modal)return;
- modal.classList.add("show");modal.setAttribute("aria-hidden","false");
+ const modal=$("#logoutConfirmModal");
+ if(modal){modal.classList.add("show");modal.setAttribute("aria-hidden","false");}
 }
 function closeLogoutConfirmation(){
- const modal=$("#logoutConfirmModal");if(!modal)return;
- modal.classList.remove("show");modal.setAttribute("aria-hidden","true");
+ const modal=$("#logoutConfirmModal");
+ if(modal){modal.classList.remove("show");modal.setAttribute("aria-hidden","true");}
 }
 async function performLogout(){
- const button=$("#confirmLogout");if(button){button.disabled=true;button.textContent="Logging out…";}
+ const button=$("#confirmLogout");
+ if(button){button.disabled=true;button.textContent="Logging out…";}
  try{
   await api("/api/logout",{method:"POST",body:JSON.stringify({})});
   isLoggedIn=false;closeLogoutConfirmation();renderNavigation();
@@ -46,6 +48,7 @@ $("#cancelLogout")?.addEventListener("click",closeLogoutConfirmation);
 $("#confirmLogout")?.addEventListener("click",performLogout);
 $("#logoutConfirmModal")?.addEventListener("click",e=>{if(e.target.id==="logoutConfirmModal")closeLogoutConfirmation();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLogoutConfirmation();});
+
 async function checkLoginState() {
  try {
   const data = await api("/api/me");
@@ -79,20 +82,8 @@ async function api(url,opt={}){const r=await fetch(url,{headers:{"Content-Type":
 
 $("#authForm").onsubmit=async e=>{
  e.preventDefault();
- const submit=$("#authSubmit");submit.disabled=true;submit.textContent=loginMode?"Logging in…":"Creating account…";
  const body={name:$("#authName").value,email:$("#authEmail").value,password:$("#authPassword").value};
- try{
-  const d=await api(loginMode?"/api/login":"/api/signup",{method:"POST",body:JSON.stringify(body)});
-  isLoggedIn=true;
-  renderNavigation();
-  $("#modal").classList.remove("show");
-  $("#authPassword").value="";
-  toast(d.message||"Welcome to LearnLoop!");
-  location.hash="#dashboard";
-  showPage();
-  await loadDashboard();
- }catch(err){toast(err.message);}
- finally{submit.disabled=false;submit.textContent=loginMode?"Log in":"Create account";}
+ try{const d=await api(loginMode?"/api/login":"/api/signup",{method:"POST",body:JSON.stringify(body)});isLoggedIn=true;renderNavigation();toast(d.message);$("#modal").classList.remove("show");$("#authPassword").value="";location.hash="#dashboard";loadDashboard();}catch(err){toast(err.message)}
 };
 
 function showPage(){
@@ -105,8 +96,7 @@ function showPage(){
   id="home";
  }
  if(id==="how") id="home";
- $(".page").forEach(p=>p.classList.toggle("active",p.id===id));
- updateActiveNavigation();
+ $$(".page").forEach(p=>p.classList.toggle("active",p.id===id));
  if(id==="explore")loadSkills();
  if(id==="matches")loadMatches();
  if(id==="learn")renderLessons();
