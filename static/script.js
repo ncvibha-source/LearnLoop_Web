@@ -391,4 +391,32 @@ $("#learnFilters")?.querySelectorAll("button").forEach(b=>b.addEventListener("cl
 $("#closeLesson")?.addEventListener("click",()=>{$("#lessonModal").classList.remove("show");$("#lessonModal").setAttribute("aria-hidden","true")});
 $("#lessonModal")?.addEventListener("click",e=>{if(e.target.id==="lessonModal")$("#closeLesson").click()});
 $("#checkAnswer")?.addEventListener("click",()=>{const chosen=document.querySelector('input[name="lessonAnswer"]:checked');if(!chosen){$("#lessonFeedback").textContent="Choose an answer first.";return}selectedLessonAnswer=Number(chosen.value);if(selectedLessonAnswer===activeLesson.answer){$("#lessonFeedback").textContent=activeLesson.explain;$("#lessonFeedback").className="lesson-feedback correct";$("#completeLesson").disabled=false;$("#checkAnswer").disabled=true}else{$("#lessonFeedback").textContent="Not quite—try again. Hint: "+activeLesson.explain;$("#lessonFeedback").className="lesson-feedback retry"}});
-$("#completeLesson")?.addEventListener("click",async()=>{if(!activeLesson||selectedLessonAnswer!==activeLesson.answer)return;let note="";try{const r=await api(`/api/lessons/${activeLesson.id}/complete`,{method:"POST",body:JSON.stringify({})});saveCompletedLesson(activeLesson.id);note=`Course completed! Your ${activeLesson.title} certificate is ready.`;toast("Your course certificate is ready!");$("#lessonFeedback").textContent=note;$("#lessonFeedback").className="lesson-feedback correct";$("#completeLesson").disabled=true;renderLessons();}catch(e){note=e.message.toLowerCase().includes("log in")?"Log in to save your course completion and receive its certificate.":e.message;$("#lessonFeedback").textContent=note;$("#lessonFeedback").className="lesson-feedback retry";}});
+$("#completeLesson")?.addEventListener("click",async(e)=>{
+ e.preventDefault();
+ const button=$("#completeLesson");
+ if(!activeLesson){$("#lessonFeedback").textContent="Please reopen the course and try again.";$("#lessonFeedback").className="lesson-feedback retry";return;}
+ if(selectedLessonAnswer!==activeLesson.answer){
+  $("#lessonFeedback").textContent="Please select the correct answer and press Check answer first.";
+  $("#lessonFeedback").className="lesson-feedback retry";
+  return;
+ }
+ button.disabled=true;
+ button.textContent="Saving completion…";
+ $("#lessonFeedback").textContent="Saving your course completion and generating your certificate…";
+ $("#lessonFeedback").className="lesson-feedback";
+ try{
+  const result=await api(`/api/lessons/${encodeURIComponent(activeLesson.id)}/complete`,{method:"POST",body:JSON.stringify({})});
+  if(!result.success)throw new Error(result.message||"The course could not be saved.");
+  saveCompletedLesson(activeLesson.id);
+  $("#lessonFeedback").textContent=result.message||"Course completed! Your certificate is ready.";
+  $("#lessonFeedback").className="lesson-feedback correct";
+  toast("Your course certificate is ready!");
+  button.textContent="Completed ✓";
+  renderLessons();
+ }catch(err){
+  $("#lessonFeedback").textContent="Could not save your course: "+err.message;
+  $("#lessonFeedback").className="lesson-feedback retry";
+  button.disabled=false;
+  button.textContent="Mark lesson complete";
+ }
+});
