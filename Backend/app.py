@@ -393,7 +393,7 @@ BASIC_LESSON_IDS = {"html","python","sql","security","passwords","figma","canva"
 def issue_certificate(conn, uid, ctype, refid, title):
     old=conn.execute("SELECT code FROM certificates WHERE user_id=? AND certificate_type=? AND reference_id=?",(uid,ctype,str(refid))).fetchone()
     if old: return old["code"]
-    code="LL-"+uuid.uuid4().hex[:4].upper()+"-"+uuid.uuid4().hex[:4].upper()
+    code="LL-"+uuid4().hex[:4].upper()+"-"+uuid4().hex[:4].upper()
     conn.execute("INSERT INTO certificates(code,user_id,certificate_type,reference_id,title) VALUES(?,?,?,?,?)",(code,uid,ctype,str(refid),title))
     return code
 
