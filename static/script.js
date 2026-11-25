@@ -7,21 +7,31 @@ let isLoggedIn = false;
 const publicPages = ["home", "how", "about"];
 function renderNavigation() {
  const nav=$("#siteNav"), actions=$("#topActions");
- if(!nav||!actions)return;
- const links=isLoggedIn?[
+ const sidebar=$("#appSidebar"), publicHeader=$("#publicTopbar");
+ if(!nav||!actions||!sidebar||!publicHeader)return;
+ document.body.classList.toggle("logged-in",isLoggedIn);
+ document.body.classList.toggle("logged-out",!isLoggedIn);
+ sidebar.hidden=!isLoggedIn;
+ publicHeader.hidden=isLoggedIn;
+ const links=[
   ["dashboard","▦","Dashboard"],["matches","♧","Find Peers"],["explore","⌕","Explore Skills"],
   ["learn","▤","Learn Basics"],["profile","↗","Teach a Skill"],["workspace","▣","My Workspace"],
   ["exchanges","⇄","My Skill Exchanges"],["certificates","✧","Certificates"],["profile","◎","My Profile"]
- ]:[["home","⌂","Home"],["how","i","How it works"],["about","ⓘ","About"]];
- nav.innerHTML=links.map(([id,icon,label])=>`<a href="#${id}" data-page-link="${id}"><span class="nav-icon">${icon}</span><span>${label}</span></a>`).join("");
- if(isLoggedIn){
-  actions.innerHTML='<button class="btn ghost logout-button" id="logoutBtn" type="button"><span class="nav-icon">↪</span><span>Log out</span></button>';
-  $("#logoutBtn").onclick=()=>openLogoutConfirmation();
- }else{
-  actions.innerHTML='<button class="btn ghost" data-open="login">Log in</button><button class="btn primary" data-open="signup">Join LearnLoop</button>';
- }
+ ];
+ nav.innerHTML=links.map(([id,icon,label])=>`<a href="#${id}" data-page-link="${id}"><span class="nav-icon">${icon}</span><span class="nav-text">${label}</span></a>`).join("");
+ actions.innerHTML='<button class="btn ghost logout-button" id="logoutBtn" type="button"><span class="nav-icon">↪</span><span class="nav-text">Log out</span></button>';
+ $("#logoutBtn").onclick=()=>openLogoutConfirmation();
  updateActiveNavigation();
 }
+
+$("#sidebarToggle")?.addEventListener("click",()=>{
+ document.body.classList.toggle("sidebar-collapsed");
+ const collapsed=document.body.classList.contains("sidebar-collapsed");
+ const button=$("#sidebarToggle");
+ button.textContent=collapsed?"›":"‹";
+ button.setAttribute("aria-label",collapsed?"Expand sidebar":"Collapse sidebar");
+ button.title=collapsed?"Expand sidebar":"Collapse sidebar";
+});
 function updateActiveNavigation(){
  const current=(location.hash.slice(1)||"home");
  document.querySelectorAll("[data-page-link]").forEach(link=>{
