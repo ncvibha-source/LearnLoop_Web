@@ -502,6 +502,47 @@ def sync_basic_lesson_completions():
     return jsonify(success=True,completed=count,total=len(lesson_titles),overall_certificate_code=overall_code)
 
 
+@app.post("/api/certificates")
+def complete_course_via_certificates():
+    """Complete a Learn Basics course using the already deployed certificates API path."""
+    user=current_user()
+    if not user:
+        return jsonify(success=False,message="Log in to save course progress and receive a certificate."),401
+    data=request.get_json(silent=True) or {}
+    lesson_id=data.get("lesson_id","")
+    lesson_titles = {
+        "html": "HTML: Build your first web page",
+        "python": "Python: Variables, data and control flow",
+        "sql": "SQL: Tables, queries and relationships",
+        "security": "Cybersecurity: Threats and safe practices",
+        "passwords": "Strong passwords, password managers and MFA",
+        "figma": "UI/UX: User research, wireframes and usability",
+        "canva": "Visual design: Layout, typography and contrast",
+        "speaking": "Public speaking: Plan, present and improve",
+        "communication": "Communication: Listening, questions and feedback"
+    }
+    if lesson_id not in lesson_titles:
+        return jsonify(success=False,message="Unknown course."),400
+    conn=None
+    try:
+        conn=db()
+        conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
+        course_code=issue_certificate(conn,user["id"],"basic_course",lesson_id,lesson_titles[lesson_id])
+        count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
+        overall_code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(lesson_titles) else None
+        conn.commit()
+        return jsonify(success=True,completed=count,total=len(lesson_titles),course_certificate_code=course_code,
+                       overall_certificate_code=overall_code,message="Course completed. Your individual course certificate is ready.")
+    except Exception:
+        if conn:
+            try: conn.connection.rollback()
+            except Exception: pass
+        app.logger.exception("Certificate course completion failed")
+        return jsonify(success=False,message="The database could not save this completion. Please try again."),500
+    finally:
+        if conn: conn.close()
+
+
 @app.get("/api/certificates")
 def my_certificates():
     user=current_user()
