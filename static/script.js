@@ -234,13 +234,13 @@ async function loadExchanges(){
 async function loadCertificates(){
  const host=$("#certificateList");if(!host)return;host.innerHTML="<p>Loading your certificates…</p>";
  try{const d=await api("/api/certificates");host.innerHTML="";
- if(!d.certificates.length){host.innerHTML=`<div class="empty">No certificates yet. Complete all ${d.total_basics} Learn Basics lessons or finish a two-way peer exchange.</div>`;return;}
+ if(!d.certificates.length){host.innerHTML=`<div class="empty">No certificates yet. Complete any Learn Basics course or finish a two-way peer exchange to earn a certificate.</div>`;return;}
  d.certificates.forEach(c=>{const card=document.createElement("article");card.className="exchange-card";const title=document.createElement("h3");title.textContent=c.title;const code=document.createElement("p");code.textContent="Verification code: "+c.code;const link=document.createElement("a");link.className="btn primary";link.href="/certificate/"+encodeURIComponent(c.code);link.target="_blank";link.rel="noopener";link.textContent="View / Print certificate";const verify=document.createElement("a");verify.href="/verify/"+encodeURIComponent(c.code);verify.target="_blank";verify.rel="noopener";verify.textContent="Verify certificate";card.append(title,code,link,document.createTextNode(" "),verify);host.appendChild(card)});
  }catch(e){host.textContent=e.message}
 }
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
-// Learn Basics: open lessons without an account; completion is stored in this browser.
+// Learn Basics: lesson content is public; course completion and certificates are saved to the signed-in account.
 const lessons = [
  {id:"html",category:"programming",title:"HTML: Build your first web page",level:"Beginner",time:"25 min",desc:"Learn document structure, semantic elements, links, images, lists and forms.",body:[
   ["1. What HTML does","HTML (HyperText Markup Language) describes the structure and meaning of web content. A browser reads HTML elements and builds the page users see. HTML is not a programming language; it is a markup language."],
