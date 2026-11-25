@@ -379,7 +379,65 @@ const lessons = [
   ["10. Key takeaway","Good communication is two-way: listen carefully, clarify meaning and respond respectfully."]
  ],question:"What is an example of active listening?",options:["Interrupting to finish a sentence","Checking your phone","Paraphrasing to confirm understanding"],answer:2,explain:"Correct! Paraphrasing helps confirm that you understood the speaker."}
 ];
-let activeLearnCategory="all", activeLesson=null, selectedLessonAnswer=null;
+
+const lessonQuestionBank = {
+html:[
+{question:"Which tag creates a hyperlink?",options:["<a>","<img>","<p>"],answer:0,explain:"The <a> element creates a hyperlink."},
+{question:"Where does visible page content belong?",options:["<head>","<body>","<meta>"],answer:1,explain:"The body contains visible page content."},
+{question:"Which attribute provides alternative text for an image?",options:["href","src","alt"],answer:2,explain:"The alt attribute describes an image."},
+{question:"Which element identifies a navigation section?",options:["<nav>","<footer>","<title>"],answer:0,explain:"The nav element identifies navigation links."}
+],
+python:[
+{question:"Which symbol starts a Python comment?",options:["//","#","<!--"],answer:1,explain:"A hash begins a single-line Python comment."},
+{question:"Which keyword defines a function?",options:["func","function","def"],answer:2,explain:"Python uses def to define functions."},
+{question:"What does len([4,7,9]) return?",options:["2","3","4"],answer:1,explain:"There are three items in the list."},
+{question:"Which loop iterates over a list?",options:["for","switch","repeat-until"],answer:0,explain:"A for loop iterates through a sequence."}
+],
+sql:[
+{question:"Which SQL command retrieves data?",options:["UPDATE","SELECT","DELETE"],answer:1,explain:"SELECT reads data from tables."},
+{question:"Which clause filters rows?",options:["WHERE","ORDER BY","GROUP BY"],answer:0,explain:"WHERE filters rows by a condition."},
+{question:"Which command adds a new row?",options:["INSERT","ALTER","DROP"],answer:0,explain:"INSERT adds records to a table."},
+{question:"What does INNER JOIN return?",options:["All left rows","Only matching rows","Only duplicate columns"],answer:1,explain:"INNER JOIN returns matching rows from both tables."}
+],
+security:[
+{question:"What does confidentiality mean?",options:["Everyone can access data","Only authorised people can access data","Systems never go offline"],answer:1,explain:"Confidentiality limits access to authorised people."},
+{question:"Which is a phishing warning sign?",options:["Unexpected urgent sign-in request","A bookmarked official site","A planned update"],answer:0,explain:"Unexpected urgency and sign-in links are common warning signs."},
+{question:"What is ransomware?",options:["A backup tool","Malware that blocks or encrypts data","A browser setting"],answer:1,explain:"Ransomware blocks or encrypts data and demands payment."},
+{question:"Why are software updates important?",options:["They can fix security weaknesses","They remove all passwords","They replace backups"],answer:0,explain:"Updates often fix known security vulnerabilities."}
+],
+passwords:[
+{question:"What is the safest password habit?",options:["Reuse one password","Use unique passwords for each account","Share passwords"],answer:1,explain:"Unique passwords stop one breach exposing other accounts."},
+{question:"What does MFA add?",options:["A second proof of identity","A longer username","A public profile"],answer:0,explain:"MFA requires another factor beyond the password."},
+{question:"Which should never be shared?",options:["Public username","One-time verification code","Public website URL"],answer:1,explain:"One-time codes can let someone access your account."},
+{question:"What should you do if a password is exposed?",options:["Keep using it","Post it online","Change it and anywhere it was reused"],answer:2,explain:"Change exposed and reused passwords immediately."}
+],
+figma:[
+{question:"What is the purpose of a wireframe?",options:["Plan screen layout","Choose animations","Write database queries"],answer:0,explain:"Wireframes plan structure before detailed styling."},
+{question:"What does UX focus on?",options:["Only colours","Overall user experience","Only source code"],answer:1,explain:"UX focuses on the complete experience of using a product."},
+{question:"Why reuse components?",options:["Keep patterns consistent","Make every page different","Remove accessibility"],answer:0,explain:"Reusable components improve consistency."},
+{question:"What is a useful usability test?",options:["Ask users to complete a realistic task","Tell users every click","Only ask designers"],answer:0,explain:"Observe users completing realistic tasks."}
+],
+canva:[
+{question:"What does visual hierarchy do?",options:["Hides the main message","Guides attention","Makes all text equal"],answer:1,explain:"Hierarchy guides attention to important information."},
+{question:"Why is contrast important?",options:["Improves readability","Makes text decorative","Replaces alignment"],answer:0,explain:"Contrast helps distinguish text from its background."},
+{question:"What is whitespace useful for?",options:["Separating content","Filling every empty area","Hiding headings"],answer:0,explain:"Whitespace reduces clutter and organises content."},
+{question:"What typography approach suits a simple poster?",options:["Many unrelated fonts","A small consistent set","A new font per sentence"],answer:1,explain:"A small font set keeps the design readable."}
+],
+speaking:[
+{question:"What should you decide before preparing a talk?",options:["Audience and main message","Slide animation first","How to avoid practice"],answer:0,explain:"Audience and purpose shape the presentation."},
+{question:"Which structure works well?",options:["Conclusion only","Introduction, key points, conclusion","Random facts"],answer:1,explain:"A clear beginning, middle and end help listeners follow."},
+{question:"What is a useful speaking habit?",options:["Rush","Pause after important ideas","Read tiny slide text"],answer:1,explain:"Pauses give listeners time to understand."},
+{question:"What if you do not know an answer?",options:["Make it up","Admit it and explain how to check","Ignore it"],answer:1,explain:"Honesty and a clear next step build trust."}
+],
+communication:[
+{question:"What is active listening?",options:["Plan your reply","Give attention and check understanding","Interrupt"],answer:1,explain:"Active listening means paying attention and checking understanding."},
+{question:"Which is an open clarifying question?",options:["Can you explain what you mean?","You are wrong, right?","Is that all?"],answer:0,explain:"Open questions invite useful detail."},
+{question:"What makes feedback constructive?",options:["Criticise the person","Describe specific work and suggest improvement","Be vague"],answer:1,explain:"Constructive feedback focuses on behaviour and a practical next step."},
+{question:"What is useful in a professional email?",options:["Clear subject and concise message","No subject","All capital letters"],answer:0,explain:"A clear subject and concise message help the reader."}
+]
+};
+
+let activeLearnCategory="all", activeLesson=null, selectedLessonAnswer=null, activeLessonQuestions=[];
 function completedLessonIds(){try{return JSON.parse(localStorage.getItem("learnloopBasicsDone")||"[]")}catch(e){return []}}
 function saveCompletedLesson(id){const done=completedLessonIds();if(!done.includes(id)){done.push(id);localStorage.setItem("learnloopBasicsDone",JSON.stringify(done))}}
 function updateLearnProgress(){const done=completedLessonIds();$("#learnProgressCount").textContent=done.length;$("#learnProgressBar").style.width=(done.length/lessons.length*100)+"%"}
@@ -391,11 +449,12 @@ function renderLessons(){
  $("#noLessons").classList.toggle("hidden",filtered.length>0);updateLearnProgress();
 }
 function openLesson(id){
- activeLesson=lessons.find(l=>l.id===id);selectedLessonAnswer=null;
+ activeLesson=lessons.find(l=>l.id===id);selectedLessonAnswer=null;activeLessonQuestions=[];
  $("#lessonCategoryLabel").textContent=activeLesson.category.toUpperCase()+" · "+activeLesson.time;
  $("#lessonTitle").textContent=activeLesson.title;
  $("#lessonBody").innerHTML=activeLesson.body.map(([h,p])=>`<section><h3>${h}</h3><p>${p.replaceAll("<","&lt;").replaceAll(">","&gt;")}</p></section>`).join("");
- $("#lessonQuiz").innerHTML=`<h3>Quick check</h3><p>${activeLesson.question}</p>`+activeLesson.options.map((o,i)=>`<label class="quiz-option"><input type="radio" name="lessonAnswer" value="${i}"> ${o.replaceAll("<","&lt;").replaceAll(">","&gt;")}</label>`).join("");
+ activeLessonQuestions=[{question:activeLesson.question,options:activeLesson.options,answer:activeLesson.answer,explain:activeLesson.explain},...(lessonQuestionBank[activeLesson.id]||[])];
+ $("#lessonQuiz").innerHTML='<h3>Knowledge check · '+activeLessonQuestions.length+' questions</h3>'+activeLessonQuestions.map((q,qi)=>'<section class="lesson-question"><p><strong>Q'+(qi+1)+'. '+q.question+'</strong></p>'+q.options.map((o,oi)=>'<label class="quiz-option"><input type="radio" name="lessonAnswer'+qi+'" value="'+oi+'"> '+o.replaceAll("<","&lt;").replaceAll(">","&gt;")+'</label>').join("")+'</section>').join("");
  $("#lessonFeedback").textContent="Choose an answer and check it to unlock lesson completion.";
  $("#checkAnswer").disabled=false;$("#completeLesson").disabled=true;
  $("#lessonModal").classList.add("show");$("#lessonModal").setAttribute("aria-hidden","false");
@@ -405,12 +464,24 @@ $("#lessonSearch")?.addEventListener("input",renderLessons);
 $("#learnFilters")?.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{activeLearnCategory=b.dataset.category;$("#learnFilters").querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));renderLessons()}));
 $("#closeLesson")?.addEventListener("click",()=>{$("#lessonModal").classList.remove("show");$("#lessonModal").setAttribute("aria-hidden","true")});
 $("#lessonModal")?.addEventListener("click",e=>{if(e.target.id==="lessonModal")$("#closeLesson").click()});
-$("#checkAnswer")?.addEventListener("click",()=>{const chosen=document.querySelector('input[name="lessonAnswer"]:checked');if(!chosen){$("#lessonFeedback").textContent="Choose an answer first.";return}selectedLessonAnswer=Number(chosen.value);if(selectedLessonAnswer===activeLesson.answer){$("#lessonFeedback").textContent=activeLesson.explain;$("#lessonFeedback").className="lesson-feedback correct";$("#completeLesson").disabled=false;$("#checkAnswer").disabled=true}else{$("#lessonFeedback").textContent="Not quite—try again. Hint: "+activeLesson.explain;$("#lessonFeedback").className="lesson-feedback retry"}});
+$("#checkAnswer")?.addEventListener("click",()=>{
+ const unanswered=activeLessonQuestions.findIndex((q,i)=>!document.querySelector('input[name="lessonAnswer'+i+'"]:checked'));
+ if(unanswered>=0){$("#lessonFeedback").textContent="Please answer all "+activeLessonQuestions.length+" questions before checking.";$("#lessonFeedback").className="lesson-feedback retry";return;}
+ let score=0;const missed=[];
+ activeLessonQuestions.forEach((q,i)=>{const chosen=Number(document.querySelector('input[name="lessonAnswer'+i+'"]:checked').value);if(chosen===q.answer)score++;else missed.push(i+1);});
+ if(score===activeLessonQuestions.length){
+  $("#lessonFeedback").textContent="Excellent! You got "+score+"/"+activeLessonQuestions.length+" correct. "+activeLessonQuestions.map(q=>q.explain).join(" ");
+  $("#lessonFeedback").className="lesson-feedback correct";$("#completeLesson").disabled=false;$("#checkAnswer").disabled=true;
+ }else{
+  $("#lessonFeedback").textContent="You got "+score+"/"+activeLessonQuestions.length+" correct. Review questions "+missed.join(", ")+", change your answers and check again.";
+  $("#lessonFeedback").className="lesson-feedback retry";
+ }
+});
 $("#completeLesson")?.addEventListener("click",async(e)=>{
  e.preventDefault();
  const button=$("#completeLesson");
  if(!activeLesson){$("#lessonFeedback").textContent="Please reopen the course and try again.";$("#lessonFeedback").className="lesson-feedback retry";return;}
- if(selectedLessonAnswer!==activeLesson.answer){
+ if(!activeLessonQuestions.length || !activeLessonQuestions.every((q,i)=>Number(document.querySelector('input[name="lessonAnswer'+i+'"]:checked')?.value)===q.answer)){
   $("#lessonFeedback").textContent="Please select the correct answer and press Check answer first.";
   $("#lessonFeedback").className="lesson-feedback retry";
   return;
