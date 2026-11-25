@@ -72,81 +72,11 @@
 .exchange-finish{margin-top:18px;padding:16px;border-radius:14px;background:#f5f1fb;border:1px solid #e3d9f2}
 .exchange-finish p{margin:0 0 10px;color:#5d5668;font-size:14px}
 
-/* LearnLoop vertical app sidebar */
-body{min-height:100vh}
-.sidebar.topbar{position:fixed;inset:0 auto 0 0;width:252px;height:100vh;padding:25px 16px;background:#fff;border:0;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;overflow-y:auto;z-index:8}
-.sidebar .brand{padding:0 10px 28px;font-size:21px;flex-shrink:0}
-.sidebar-label{padding:10px 13px 12px;color:#aaa5ba;font-size:10px;font-weight:800;letter-spacing:1.8px}
-.sidebar nav{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:14px;font-weight:700}
-.sidebar nav a{display:flex;align-items:center;gap:13px;padding:12px 13px;border-radius:11px;transition:background .18s,color .18s}
-.sidebar nav a:hover{background:#f6f3ff;color:var(--purple)}
-.sidebar nav a.active{background:#f0ebff;color:var(--purple)}
-.nav-icon{width:22px;display:inline-grid;place-items:center;font-size:18px;flex-shrink:0}
-.sidebar-bottom{margin-top:auto;padding:18px 7px 4px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:9px}
-.sidebar-bottom .btn{width:100%;display:flex;justify-content:center;align-items:center;gap:10px}
-.sidebar-bottom .logout-button{justify-content:flex-start;color:#9a4350}
-.app-main{margin-left:252px;min-width:0}
-.app-main main{min-height:calc(100vh - 100px)}
-.app-main footer{margin-top:30px}
-.heading,.inner{max-width:1240px}
+
+/* Logout confirmation dialog */
 .confirm-box{text-align:center;max-width:440px}
 .confirm-icon{width:54px;height:54px;margin:0 auto 16px;border-radius:16px;background:#f0ebff;color:var(--purple);display:grid;place-items:center;font-size:25px}
 .confirm-box h2{margin:0 0 8px;font-size:23px}
 .confirm-box p{margin:0 auto 22px;max-width:340px}
 .confirm-actions{display:flex;justify-content:center;gap:12px}
 .confirm-actions .btn{min-width:130px}
-@media(max-width:850px){
- .sidebar.topbar{width:100%;height:auto;inset:0 0 auto 0;padding:10px 14px;position:sticky;border-right:0;border-bottom:1px solid var(--line);gap:8px}
- .sidebar .brand{padding:0 6px 5px}
- .sidebar-label{display:none}
- .sidebar nav{flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:3px}
- .sidebar nav a{white-space:nowrap;padding:9px 11px;font-size:12px}
- .sidebar nav a .nav-icon{font-size:16px}
- .sidebar-bottom{margin-top:0;padding:8px 4px 0;border-top:0;flex-direction:row;justify-content:flex-end}
- .sidebar-bottom .btn{width:auto;padding:9px 14px}
- .app-main{margin-left:0}
-}
-@media(max-width:560px){
- .sidebar nav a{padding:8px 9px}
- .sidebar-bottom .btn{font-size:12px}
- .confirm-actions{flex-direction:column-reverse}
- .confirm-actions .btn{width:100%}
-}
-
-/* Public header is shown before login; the collapsible app sidebar is post-login only */
-.public-topbar{height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 6%;position:sticky;top:0;z-index:7}
-.public-topbar nav{display:flex;gap:30px;color:var(--muted);font-weight:700}
-.public-topbar nav a:hover{color:var(--purple)}
-.public-actions{display:flex;align-items:center;gap:10px}
-[hidden]{display:none!important}
-.sidebar-brand-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px 28px}
-.sidebar-brand-row .brand{padding:0 6px;font-size:21px}
-.sidebar-toggle{width:32px;height:32px;border:1px solid var(--line);background:#fff;border-radius:9px;color:var(--muted);font-size:23px;line-height:1;display:grid;place-items:center;flex-shrink:0}
-.sidebar-toggle:hover{background:#f0ebff;color:var(--purple)}
-.sidebar-collapsed .sidebar.topbar{width:78px;padding:22px 12px}
-.sidebar-collapsed .sidebar-brand-row{justify-content:center;flex-direction:column;padding:0 0 25px}
-.sidebar-collapsed .sidebar-brand-row .brand{padding:0}
-.sidebar-collapsed .sidebar-brand-row .brand>span:last-child,
-.sidebar-collapsed .sidebar-label,
-.sidebar-collapsed .sidebar nav .nav-text,
-.sidebar-collapsed .sidebar-bottom .nav-text{display:none}
-.sidebar-collapsed .sidebar nav a{justify-content:center;padding:13px 8px}
-.sidebar-collapsed .sidebar nav .nav-icon{font-size:20px}
-.sidebar-collapsed .sidebar-bottom .btn{justify-content:center;padding:12px 8px}
-.sidebar-collapsed .app-main{margin-left:78px}
-@media(max-width:850px){
- .public-topbar{padding:0 4%;height:auto;min-height:70px;flex-wrap:wrap;gap:8px}
- .public-topbar nav{display:none}
- .public-actions .btn{padding:9px 12px}
- .sidebar-brand-row{padding:0 4px 5px}
- .sidebar-collapsed .sidebar.topbar{width:100%;padding:10px 14px}
- .sidebar-collapsed .sidebar-brand-row{flex-direction:row;justify-content:space-between;padding:0 4px 5px}
- .sidebar-collapsed .sidebar-brand-row .brand>span:last-child{display:inline}
- .sidebar-collapsed .sidebar nav .nav-text{display:inline}
- .sidebar-collapsed .sidebar-label{display:none}
- .sidebar-collapsed .sidebar nav a{justify-content:flex-start;padding:9px 11px}
- .sidebar-collapsed .sidebar-bottom .nav-text{display:inline}
- .sidebar-collapsed .sidebar-bottom .btn{justify-content:flex-start;padding:9px 14px}
- .sidebar-collapsed .app-main{margin-left:0}
-}
-@media(max-width:560px){.public-topbar .brand{font-size:18px}.public-actions .btn{font-size:12px}}
