@@ -420,7 +420,7 @@ $("#completeLesson")?.addEventListener("click",async(e)=>{
  $("#lessonFeedback").textContent="Saving your course completion and generating your certificate…";
  $("#lessonFeedback").className="lesson-feedback";
  try{
-  const result=await api(`/api/lessons/${encodeURIComponent(activeLesson.id)}/complete`,{method:"POST",body:JSON.stringify({})});
+  const result=await api("/api/complete-lesson",{method:"POST",body:JSON.stringify({lesson_id:activeLesson.id})});
   if(!result.success)throw new Error(result.message||"The course could not be saved.");
   saveCompletedLesson(activeLesson.id);
   $("#lessonFeedback").textContent=result.message||"Course completed! Your certificate is ready.";
