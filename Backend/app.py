@@ -23,7 +23,7 @@ app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 class DatabaseConnection:
     """Small compatibility wrapper around PostgreSQL for LearnLoop queries."""
     def __init__(self):
-        self.connection = psycopg2.connect(DATABASE_URL, cursor_factory=DictCursor, sslmode="require")
+        self.connection = psycopg2.connect(DATABASE_URL, cursor_factory=DictCursor, sslmode="require", connect_timeout=10)
 
     def execute(self, sql, params=None):
         cursor = self.connection.cursor()
@@ -428,7 +428,7 @@ def complete_basic_lesson(lesson_id):
 
 @app.post("/api/complete-lesson")
 def complete_basic_lesson_compat():
-    """Stable non-parameterized endpoint for serverless course completion."""
+    """Complete one Learn Basics course and issue its certificate."""
     user=current_user()
     if not user:
         return jsonify(success=False,message="Log in to save course progress and receive a certificate."),401
@@ -447,15 +447,25 @@ def complete_basic_lesson_compat():
     }
     if lesson_id not in lesson_titles:
         return jsonify(success=False,message="Unknown course."),404
-    conn=db()
-    conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
-    course_code=issue_certificate(conn,user["id"],"basic_course",lesson_id,lesson_titles[lesson_id])
-    count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
-    overall_code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(lesson_titles) else None
-    conn.commit()
-    conn.close()
-    return jsonify(success=True,completed=count,total=len(lesson_titles),course_certificate_code=course_code,
-                   overall_certificate_code=overall_code,message="Course completed. Your individual course certificate is ready.")
+    conn=None
+    try:
+        conn=db()
+        conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
+        course_code=issue_certificate(conn,user["id"],"basic_course",lesson_id,lesson_titles[lesson_id])
+        count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
+        overall_code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(lesson_titles) else None
+        conn.commit()
+        return jsonify(success=True,completed=count,total=len(lesson_titles),course_certificate_code=course_code,
+                       overall_certificate_code=overall_code,message="Course completed. Your individual course certificate is ready.")
+    except Exception:
+        if conn:
+            try: conn.connection.rollback()
+            except Exception: pass
+        app.logger.exception("Learn Basics course completion failed")
+        return jsonify(success=False,message="The database could not save this completion. Please try again in a moment."),500
+    finally:
+        if conn:
+            conn.close()
 
 
 @app.post("/api/lessons/sync-completions")
