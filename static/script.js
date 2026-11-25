@@ -385,55 +385,100 @@ html:[
 {question:"Which tag creates a hyperlink?",options:["<a>","<img>","<p>"],answer:0,explain:"The <a> element creates a hyperlink."},
 {question:"Where does visible page content belong?",options:["<head>","<body>","<meta>"],answer:1,explain:"The body contains visible page content."},
 {question:"Which attribute provides alternative text for an image?",options:["href","src","alt"],answer:2,explain:"The alt attribute describes an image."},
-{question:"Which element identifies a navigation section?",options:["<nav>","<footer>","<title>"],answer:0,explain:"The nav element identifies navigation links."}
+{question:"Which element identifies a navigation section?",options:["<nav>","<footer>","<title>"],answer:0,explain:"The nav element identifies navigation links."},
+{question:"Which tag displays an image?",options:["<img>","<a>","<table>"],answer:0,explain:"The img element embeds an image."},
+{question:"Which attribute sets a link destination?",options:["src","href","alt"],answer:1,explain:"href specifies the destination of a hyperlink."},
+{question:"Which list is numbered by default?",options:["<ul>","<ol>","<div>"],answer:1,explain:"ol creates an ordered list."},
+{question:"Why should inputs have labels?",options:["For clarity and accessibility","To change colours","To create tables"],answer:0,explain:"Labels identify inputs and help assistive technology."},
+{question:"Which element contains the page's main content?",options:["<main>","<head>","<title>"],answer:0,explain:"main identifies the dominant content of the page."}
 ],
 python:[
 {question:"Which symbol starts a Python comment?",options:["//","#","<!--"],answer:1,explain:"A hash begins a single-line Python comment."},
 {question:"Which keyword defines a function?",options:["func","function","def"],answer:2,explain:"Python uses def to define functions."},
 {question:"What does len([4,7,9]) return?",options:["2","3","4"],answer:1,explain:"There are three items in the list."},
-{question:"Which loop iterates over a list?",options:["for","switch","repeat-until"],answer:0,explain:"A for loop iterates through a sequence."}
+{question:"Which loop iterates over a list?",options:["for","switch","repeat-until"],answer:0,explain:"A for loop iterates through a sequence."},
+{question:"What does 10 // 3 return?",options:["3.33","3","1"],answer:1,explain:"// performs floor division."},
+{question:"Which type stores True or False?",options:["bool","str","list"],answer:0,explain:"bool stores Boolean values."},
+{question:"What does list.append() do?",options:["Adds an item","Sorts items","Deletes the list"],answer:0,explain:"append adds an item to the end of a list."},
+{question:"Which statement exits a loop?",options:["skip","stop","break"],answer:2,explain:"break exits the nearest loop."},
+{question:"What does return do in a function?",options:["Sends a result to the caller","Prints automatically","Repeats the function"],answer:0,explain:"return passes a value back to the caller."}
 ],
 sql:[
 {question:"Which SQL command retrieves data?",options:["UPDATE","SELECT","DELETE"],answer:1,explain:"SELECT reads data from tables."},
 {question:"Which clause filters rows?",options:["WHERE","ORDER BY","GROUP BY"],answer:0,explain:"WHERE filters rows by a condition."},
 {question:"Which command adds a new row?",options:["INSERT","ALTER","DROP"],answer:0,explain:"INSERT adds records to a table."},
-{question:"What does INNER JOIN return?",options:["All left rows","Only matching rows","Only duplicate columns"],answer:1,explain:"INNER JOIN returns matching rows from both tables."}
+{question:"What does INNER JOIN return?",options:["All left rows","Only matching rows","Only duplicate columns"],answer:1,explain:"INNER JOIN returns matching rows from both tables."},
+{question:"Which key uniquely identifies a record?",options:["Foreign key","Primary key","Duplicate key"],answer:1,explain:"A primary key uniquely identifies a row."},
+{question:"Which clause sorts query results?",options:["ORDER BY","WHERE","VALUES"],answer:0,explain:"ORDER BY sorts returned rows."},
+{question:"Which command changes existing records?",options:["UPDATE","INSERT","CREATE"],answer:0,explain:"UPDATE modifies existing rows."},
+{question:"Which function counts rows?",options:["SUM()","COUNT()","AVG()"],answer:1,explain:"COUNT() counts rows or non-null values."},
+{question:"What does a foreign key do?",options:["References a key in a related table","Styles a table","Encrypts a database"],answer:0,explain:"A foreign key establishes a relationship between records."}
 ],
 security:[
 {question:"What does confidentiality mean?",options:["Everyone can access data","Only authorised people can access data","Systems never go offline"],answer:1,explain:"Confidentiality limits access to authorised people."},
 {question:"Which is a phishing warning sign?",options:["Unexpected urgent sign-in request","A bookmarked official site","A planned update"],answer:0,explain:"Unexpected urgency and sign-in links are common warning signs."},
 {question:"What is ransomware?",options:["A backup tool","Malware that blocks or encrypts data","A browser setting"],answer:1,explain:"Ransomware blocks or encrypts data and demands payment."},
-{question:"Why are software updates important?",options:["They can fix security weaknesses","They remove all passwords","They replace backups"],answer:0,explain:"Updates often fix known security vulnerabilities."}
+{question:"Why are software updates important?",options:["They can fix security weaknesses","They remove all passwords","They replace backups"],answer:0,explain:"Updates often fix known security vulnerabilities."},
+{question:"What does integrity mean in the CIA triad?",options:["Data remains accurate and unaltered without authorisation","Everyone can read data","Systems never go offline"],answer:0,explain:"Integrity protects data from unauthorised modification."},
+{question:"What is social engineering?",options:["Manipulating people to reveal information or act unsafely","Updating a layout","Compressing files"],answer:0,explain:"Social engineering exploits human trust or behaviour."},
+{question:"What should you do with a suspicious attachment?",options:["Open it","Verify the sender through a trusted channel","Forward it"],answer:1,explain:"Do not open unexpected attachments; verify independently."},
+{question:"Why are backups useful?",options:["They help restore lost data","They stop all phishing","They replace updates"],answer:0,explain:"Backups help recover data after loss or damage."},
+{question:"What does availability mean?",options:["Systems and data are accessible when needed","Passwords are public","Data cannot change"],answer:0,explain:"Availability ensures authorised users can access resources when required."}
 ],
 passwords:[
 {question:"What is the safest password habit?",options:["Reuse one password","Use unique passwords for each account","Share passwords"],answer:1,explain:"Unique passwords stop one breach exposing other accounts."},
 {question:"What does MFA add?",options:["A second proof of identity","A longer username","A public profile"],answer:0,explain:"MFA requires another factor beyond the password."},
 {question:"Which should never be shared?",options:["Public username","One-time verification code","Public website URL"],answer:1,explain:"One-time codes can let someone access your account."},
-{question:"What should you do if a password is exposed?",options:["Keep using it","Post it online","Change it and anywhere it was reused"],answer:2,explain:"Change exposed and reused passwords immediately."}
+{question:"What should you do if a password is exposed?",options:["Keep using it","Post it online","Change it and anywhere it was reused"],answer:2,explain:"Change exposed and reused passwords immediately."},
+{question:"What is a passphrase?",options:["A longer sequence of words used as a password","A username","A one-time code"],answer:0,explain:"A passphrase combines words into a longer credential."},
+{question:"Which method is generally phishing-resistant?",options:["A security key","A reused password","A code sent by a stranger"],answer:0,explain:"Security keys provide strong phishing-resistant authentication."},
+{question:"Why use a password manager?",options:["To generate and store unique passwords","To share passwords publicly","To turn off MFA"],answer:0,explain:"Password managers help manage unique credentials."},
+{question:"What should you do with an unexpected MFA prompt?",options:["Approve it","Deny it and check account activity","Share it"],answer:1,explain:"An unexpected prompt may indicate an attempted sign-in."},
+{question:"What are backup codes for?",options:["Account recovery when MFA is unavailable","Sharing passwords","Creating email addresses"],answer:0,explain:"Backup codes provide an alternative account recovery method."}
 ],
 figma:[
 {question:"What is the purpose of a wireframe?",options:["Plan screen layout","Choose animations","Write database queries"],answer:0,explain:"Wireframes plan structure before detailed styling."},
 {question:"What does UX focus on?",options:["Only colours","Overall user experience","Only source code"],answer:1,explain:"UX focuses on the complete experience of using a product."},
 {question:"Why reuse components?",options:["Keep patterns consistent","Make every page different","Remove accessibility"],answer:0,explain:"Reusable components improve consistency."},
-{question:"What is a useful usability test?",options:["Ask users to complete a realistic task","Tell users every click","Only ask designers"],answer:0,explain:"Observe users completing realistic tasks."}
+{question:"What is a useful usability test?",options:["Ask users to complete a realistic task","Tell users every click","Only ask designers"],answer:0,explain:"Observe users completing realistic tasks."},
+{question:"What is a user flow?",options:["Steps a user follows to complete a task","A colour palette","A backup"],answer:0,explain:"A user flow maps the path to achieve a goal."},
+{question:"Which is an example of visual hierarchy?",options:["Making the main heading prominent","Making every element identical","Removing spacing"],answer:0,explain:"Hierarchy uses size and placement to show importance."},
+{question:"What is a design component?",options:["A reusable interface element","A password","A network protocol"],answer:0,explain:"Components are reusable elements such as buttons and cards."},
+{question:"Why check colour contrast?",options:["To improve readability","To increase file size","To hide buttons"],answer:0,explain:"Adequate contrast improves legibility and accessibility."},
+{question:"What should follow usability testing?",options:["Review feedback and improve confusing areas","Ignore difficulties","Remove labels"],answer:0,explain:"Testing reveals issues that can guide design improvements."}
 ],
 canva:[
 {question:"What does visual hierarchy do?",options:["Hides the main message","Guides attention","Makes all text equal"],answer:1,explain:"Hierarchy guides attention to important information."},
 {question:"Why is contrast important?",options:["Improves readability","Makes text decorative","Replaces alignment"],answer:0,explain:"Contrast helps distinguish text from its background."},
 {question:"What is whitespace useful for?",options:["Separating content","Filling every empty area","Hiding headings"],answer:0,explain:"Whitespace reduces clutter and organises content."},
-{question:"What typography approach suits a simple poster?",options:["Many unrelated fonts","A small consistent set","A new font per sentence"],answer:1,explain:"A small font set keeps the design readable."}
+{question:"What typography approach suits a simple poster?",options:["Many unrelated fonts","A small consistent set","A new font per sentence"],answer:1,explain:"A small font set keeps the design readable."},
+{question:"What is a colour palette?",options:["A planned set of design colours","A file list","A database"],answer:0,explain:"A palette is a coordinated set of colours."},
+{question:"Why align related elements?",options:["To create order and easier scanning","To reduce readability","To remove hierarchy"],answer:0,explain:"Alignment makes a layout organised."},
+{question:"What should stand out on a poster?",options:["The main headline","A minor footnote","A page number"],answer:0,explain:"The headline communicates the primary message."},
+{question:"What is a grid useful for?",options:["Arranging elements consistently","Generating passwords","Editing audio"],answer:0,explain:"Grids help align content and create balance."},
+{question:"What should you check before sharing a design?",options:["Spelling, readability and alignment","Only the filename","Whether every space is filled"],answer:0,explain:"A final review catches errors and improves clarity."}
 ],
 speaking:[
 {question:"What should you decide before preparing a talk?",options:["Audience and main message","Slide animation first","How to avoid practice"],answer:0,explain:"Audience and purpose shape the presentation."},
 {question:"Which structure works well?",options:["Conclusion only","Introduction, key points, conclusion","Random facts"],answer:1,explain:"A clear beginning, middle and end help listeners follow."},
 {question:"What is a useful speaking habit?",options:["Rush","Pause after important ideas","Read tiny slide text"],answer:1,explain:"Pauses give listeners time to understand."},
-{question:"What if you do not know an answer?",options:["Make it up","Admit it and explain how to check","Ignore it"],answer:1,explain:"Honesty and a clear next step build trust."}
+{question:"What if you do not know an answer?",options:["Make it up","Admit it and explain how to check","Ignore it"],answer:1,explain:"Honesty and a clear next step build trust."},
+{question:"Why practise a presentation aloud?",options:["To check timing and improve delivery","To avoid learning the topic","To make slides longer"],answer:0,explain:"Practice improves pacing, clarity and confidence."},
+{question:"What should slides contain?",options:["Short points and relevant visuals","Every word of the speech","Tiny paragraphs"],answer:0,explain:"Slides should support the speaker."},
+{question:"How should you handle a question you do not understand?",options:["Ask for clarification","Guess","Ignore it"],answer:0,explain:"Clarifying helps you answer the actual question."},
+{question:"What does varying your pace help with?",options:["Emphasising important ideas","Making every sentence confusing","Avoiding preparation"],answer:0,explain:"Pacing and pauses make a talk easier to follow."},
+{question:"What belongs in a useful conclusion?",options:["The key takeaway","Unrelated topics","An abrupt stop"],answer:0,explain:"A conclusion reinforces the main message."}
 ],
 communication:[
 {question:"What is active listening?",options:["Plan your reply","Give attention and check understanding","Interrupt"],answer:1,explain:"Active listening means paying attention and checking understanding."},
 {question:"Which is an open clarifying question?",options:["Can you explain what you mean?","You are wrong, right?","Is that all?"],answer:0,explain:"Open questions invite useful detail."},
 {question:"What makes feedback constructive?",options:["Criticise the person","Describe specific work and suggest improvement","Be vague"],answer:1,explain:"Constructive feedback focuses on behaviour and a practical next step."},
-{question:"What is useful in a professional email?",options:["Clear subject and concise message","No subject","All capital letters"],answer:0,explain:"A clear subject and concise message help the reader."}
+{question:"What is useful in a professional email?",options:["Clear subject and concise message","No subject","All capital letters"],answer:0,explain:"A clear subject and concise message help the reader."},
+{question:"Why paraphrase what someone said?",options:["To check understanding","To change their meaning","To interrupt"],answer:0,explain:"Paraphrasing confirms understanding and invites clarification."},
+{question:"Which feedback is most specific?",options:["Your introduction states the topic; add an example to point two","This is bad","Try harder"],answer:0,explain:"Specific feedback describes what worked and what to improve."},
+{question:"What is a good way to receive feedback?",options:["Listen and ask for an example","Interrupt","Reject every suggestion"],answer:0,explain:"Listening and asking questions helps you understand feedback."},
+{question:"What should you check before sending an email?",options:["Recipients, subject and attachments","Only font colour","Number of emojis"],answer:0,explain:"Checking these details prevents common mistakes."},
+{question:"How can you disagree respectfully?",options:["Explain your reason calmly and listen","Insult the person","Refuse to listen"],answer:0,explain:"Respectful disagreement focuses on ideas, not personal attacks."}
 ]
 };
 
