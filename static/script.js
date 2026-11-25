@@ -6,34 +6,50 @@ function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show"
 let isLoggedIn = false;
 const publicPages = ["home", "how", "about"];
 function renderNavigation() {
- const nav = $("#siteNav");
- const actions = $("#topActions");
- if (!nav || !actions) return;
- if (isLoggedIn) {
-  nav.innerHTML = `
-   <a href="#dashboard">Dashboard</a>
-   <a href="#matches">Find Peers</a>
-   <a href="#explore">Explore Skills</a>
-   <a href="#learn">Learn Basics</a>
-   <a href="#profile">Teach a Skill</a>
-   <a href="#workspace">My Workspace</a>
-   <a href="#exchanges">My Skill Exchanges</a>\n   <a href="#certificates">Certificates</a>
-   <a href="#profile">My Profile</a>`;
-  actions.innerHTML = `<button class="btn ghost" id="logoutBtn">Log out</button>`;
-  $("#logoutBtn").onclick = async () => {
-   try {
-    await api("/api/logout", {method:"POST", body:JSON.stringify({})});
-    isLoggedIn = false;
-    renderNavigation();
-    location.hash = "#home";
-    toast("You have been logged out.");
-   } catch(err) { toast(err.message); }
-  };
- } else {
-  nav.innerHTML = `<a href="#home">Home</a><a href="#how">How it works</a><a href="#about">About</a>`;
-  actions.innerHTML = `<button class="btn ghost" data-open="login">Log in</button><button class="btn primary" data-open="signup">Join LearnLoop</button>`;
+ const nav=$("#siteNav"), actions=$("#topActions");
+ if(!nav||!actions)return;
+ const links=isLoggedIn?[
+  ["dashboard","▦","Dashboard"],["matches","♧","Find Peers"],["explore","⌕","Explore Skills"],
+  ["learn","▤","Learn Basics"],["profile","↗","Teach a Skill"],["workspace","▣","My Workspace"],
+  ["exchanges","⇄","My Skill Exchanges"],["certificates","✧","Certificates"],["profile","◎","My Profile"]
+ ]:[["home","⌂","Home"],["how","i","How it works"],["about","ⓘ","About"]];
+ nav.innerHTML=links.map(([id,icon,label])=>`<a href="#${id}" data-page-link="${id}"><span class="nav-icon">${icon}</span><span>${label}</span></a>`).join("");
+ if(isLoggedIn){
+  actions.innerHTML='<button class="btn ghost logout-button" id="logoutBtn" type="button"><span class="nav-icon">↪</span><span>Log out</span></button>';
+  $("#logoutBtn").onclick=()=>openLogoutConfirmation();
+ }else{
+  actions.innerHTML='<button class="btn ghost" data-open="login">Log in</button><button class="btn primary" data-open="signup">Join LearnLoop</button>';
  }
+ updateActiveNavigation();
 }
+function updateActiveNavigation(){
+ const current=(location.hash.slice(1)||"home");
+ document.querySelectorAll("[data-page-link]").forEach(link=>{
+  const target=link.dataset.pageLink;
+  link.classList.toggle("active",target===current || (current==="home"&&target==="home"));
+ });
+}
+function openLogoutConfirmation(){
+ const modal=$("#logoutConfirmModal");if(!modal)return;
+ modal.classList.add("show");modal.setAttribute("aria-hidden","false");
+}
+function closeLogoutConfirmation(){
+ const modal=$("#logoutConfirmModal");if(!modal)return;
+ modal.classList.remove("show");modal.setAttribute("aria-hidden","true");
+}
+async function performLogout(){
+ const button=$("#confirmLogout");if(button){button.disabled=true;button.textContent="Logging out…";}
+ try{
+  await api("/api/logout",{method:"POST",body:JSON.stringify({})});
+  isLoggedIn=false;closeLogoutConfirmation();renderNavigation();
+  location.hash="#home";showPage();toast("You have been logged out.");
+ }catch(err){toast(err.message);}
+ finally{if(button){button.disabled=false;button.textContent="Yes, log out";}}
+}
+$("#cancelLogout")?.addEventListener("click",closeLogoutConfirmation);
+$("#confirmLogout")?.addEventListener("click",performLogout);
+$("#logoutConfirmModal")?.addEventListener("click",e=>{if(e.target.id==="logoutConfirmModal")closeLogoutConfirmation();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLogoutConfirmation();});
 async function checkLoginState() {
  try {
   const data = await api("/api/me");
@@ -81,7 +97,8 @@ function showPage(){
   id="home";
  }
  if(id==="how") id="home";
- $$(".page").forEach(p=>p.classList.toggle("active",p.id===id));
+ $(".page").forEach(p=>p.classList.toggle("active",p.id===id));
+ updateActiveNavigation();
  if(id==="explore")loadSkills();
  if(id==="matches")loadMatches();
  if(id==="learn")renderLessons();
