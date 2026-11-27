@@ -219,6 +219,19 @@ if ($("#matchTabs")) {
 
 
 // Private two-way peer video exchange. Videos are only served to accepted exchange participants.
+// Private two-way peer video exchange with uploader-managed highlights.
+function formatVideoTime(seconds){
+ const s=Math.max(0,Number(seconds)||0), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), r=Math.floor(s%60);
+ return h ? [h,m,r].map((n,i)=>i===0?String(n):String(n).padStart(2,"0")).join(":") : [m,r].map(n=>String(n).padStart(2,"0")).join(":");
+}
+function parseVideoTime(value){
+ const parts=String(value||"").trim().split(":").map(Number);
+ if(!parts.length||parts.some(n=>!Number.isInteger(n)||n<0)||parts.length>3)return null;
+ if(parts.length===1)return parts[0];
+ if(parts.length===2)return parts[0]*60+parts[1];
+ if(parts[1]>59||parts[2]>59)return null;
+ return parts[0]*3600+parts[1]*60+parts[2];
+}
 async function loadExchanges(){
  const host=$("#exchangeList"); if(!host)return; host.innerHTML="<p>Loading your exchanges…</p>";
  try{const d=await api("/api/exchanges");host.innerHTML="";
@@ -229,12 +242,57 @@ async function loadExchanges(){
    card.innerHTML=`<div class="exchange-card-head"><div><h3>${escapeHtml(other)}</h3><p>Skill exchange #${ex.id}</p></div><span class="exchange-status ${ex.status}">${ex.status}</span></div>`;
    if(ex.status==="pending"&&!ex.is_requester){const row=document.createElement("div");row.className="exchange-actions";["accept","reject"].forEach(action=>{const b=document.createElement("button");b.className=action==="accept"?"btn primary":"btn outline";b.textContent=action[0].toUpperCase()+action.slice(1);b.onclick=async()=>{try{const r=await api(`/api/exchanges/${ex.id}/respond`,{method:"POST",body:JSON.stringify({action})});toast(r.message);loadExchanges()}catch(e){toast(e.message)}};row.appendChild(b)});card.appendChild(row)}
    if(ex.status==="accepted"){
-    const upload=document.createElement("form");upload.className="video-upload-form";upload.innerHTML=`<h4>Share your explanation video</h4><label>Video title<input name="title" required maxlength="100" placeholder="e.g. Python variables explained"></label><label>Skill explained<input name="skill" required maxlength="80" placeholder="e.g. Python"></label><label>Choose video<input name="video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" required></label><button class="btn primary" type="submit">Upload video</button><small>MP4, WEBM, MOV or M4V · up to 100 MB</small>`;
-    upload.onsubmit=async e=>{e.preventDefault();const fd=new FormData(upload);const b=upload.querySelector("button");b.disabled=true;b.textContent="Uploading…";try{const r=await fetch(`/api/exchanges/${ex.id}/videos`,{method:"POST",body:fd});const data=await r.json();if(!r.ok)throw new Error(data.message||"Upload failed");toast(data.message);loadExchanges()}catch(err){toast(err.message)}finally{b.disabled=false;b.textContent="Upload video"}};
-    card.appendChild(upload);
+    const myVideo=ex.videos.find(v=>v.is_uploader);
+    if(!myVideo){
+     const upload=document.createElement("form");upload.className="video-upload-form";upload.innerHTML=`<h4>Share your explanation video</h4><label>Video title<input name="title" required maxlength="100" placeholder="e.g. Python variables explained"></label><label>Skill explained<input name="skill" required maxlength="80" placeholder="e.g. Python"></label><label>Choose video<input name="video" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" required></label><button class="btn primary" type="submit">Upload video</button><small>One video per student · MP4, WEBM, MOV or M4V · up to 100 MB</small>`;
+     upload.onsubmit=async e=>{e.preventDefault();const fd=new FormData(upload);const b=upload.querySelector("button");b.disabled=true;b.textContent="Uploading…";try{const r=await fetch(`/api/exchanges/${ex.id}/videos`,{method:"POST",body:fd});const data=await r.json();if(!r.ok)throw new Error(data.message||"Upload failed");toast(data.message);loadExchanges()}catch(err){toast(err.message)}finally{b.disabled=false;b.textContent="Upload video"}};
+     card.appendChild(upload);
+    }else{
+     const note=document.createElement("p");note.className="video-uploaded-note";note.textContent="You've uploaded your video for this exchange. You can manage its highlights below.";card.appendChild(note);
+    }
     const videos=document.createElement("div");videos.className="exchange-videos";const heading=document.createElement("h4");heading.textContent="Shared explanations";videos.appendChild(heading);
-    if(!ex.videos.length){const p=document.createElement("p");p.textContent="No videos uploaded yet. Each of you can upload an explanation of a skill you know.";videos.appendChild(p)}
-    ex.videos.forEach(v=>{const wrap=document.createElement("div");wrap.className="shared-video";const title=document.createElement("h5");title.textContent=`${v.title} — ${v.skill}`;const by=document.createElement("p");by.textContent=`Uploaded by ${v.uploader_id===ex.requester_id?ex.requester_name:ex.peer_name}`;const player=document.createElement("video");player.controls=true;player.preload="metadata";player.src=`/api/exchanges/${ex.id}/videos/${v.id}`;wrap.append(title,by,player);videos.appendChild(wrap)});
+    if(!ex.videos.length){const p=document.createElement("p");p.textContent="No videos uploaded yet. Each of you can upload one explanation video.";videos.appendChild(p)}
+    ex.videos.forEach(v=>{
+     const wrap=document.createElement("div");wrap.className="shared-video";
+     const title=document.createElement("h5");title.textContent=`${v.title} — ${v.skill}`;
+     const by=document.createElement("p");by.textContent=`Uploaded by ${v.uploader_id===ex.requester_id?ex.requester_name:ex.peer_name}`;
+     const player=document.createElement("video");player.controls=true;player.preload="metadata";player.src=`/api/exchanges/${ex.id}/videos/${v.id}`;
+     wrap.append(title,by,player);
+     const highlights=document.createElement("div");highlights.className="video-highlights";
+     const highlightsTitle=document.createElement("h5");highlightsTitle.textContent="Video highlights";highlights.appendChild(highlightsTitle);
+     if(v.highlights&&v.highlights.length){
+      const list=document.createElement("div");list.className="video-highlight-list";
+      v.highlights.forEach(h=>{
+       const item=document.createElement("div");item.className="video-highlight-item";
+       const jump=document.createElement("button");jump.type="button";jump.className="video-highlight-jump";jump.textContent=formatVideoTime(h.timestamp_seconds);jump.title="Jump to this moment";jump.onclick=()=>{player.currentTime=Number(h.timestamp_seconds);player.play().catch(()=>{})};
+       const detail=document.createElement("div");detail.className="video-highlight-detail";
+       const label=document.createElement("strong");label.textContent=h.title;detail.appendChild(label);
+       if(h.description){const desc=document.createElement("p");desc.textContent=h.description;detail.appendChild(desc)}
+       item.append(jump,detail);
+       if(v.is_uploader){
+        const actions=document.createElement("div");actions.className="video-highlight-actions";
+        const edit=document.createElement("button");edit.type="button";edit.className="btn outline";edit.textContent="Edit";edit.onclick=async()=>{
+         const newTitle=prompt("Highlight title:",h.title);if(newTitle===null)return;
+         const newTime=prompt("Timestamp (MM:SS or HH:MM:SS):",formatVideoTime(h.timestamp_seconds));if(newTime===null)return;
+         const seconds=parseVideoTime(newTime);if(seconds===null){toast("Enter a valid timestamp.");return}
+         const newDesc=prompt("Short description (optional):",h.description||"");if(newDesc===null)return;
+         try{const r=await api(`/api/exchanges/${ex.id}/videos/${v.id}/highlights/${h.id}`,{method:"PUT",body:JSON.stringify({title:newTitle,description:newDesc,timestamp_seconds:seconds})});toast(r.message);loadExchanges()}catch(err){toast(err.message)}
+        };
+        const del=document.createElement("button");del.type="button";del.className="btn outline";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this highlight?"))return;try{const r=await api(`/api/exchanges/${ex.id}/videos/${v.id}/highlights/${h.id}`,{method:"DELETE"});toast(r.message);loadExchanges()}catch(err){toast(err.message)}};
+        actions.append(edit,del);item.appendChild(actions);
+       }
+       list.appendChild(item);
+      });
+      highlights.appendChild(list);
+     }else{const empty=document.createElement("p");empty.className="video-highlights-empty";empty.textContent="No highlights added yet.";highlights.appendChild(empty)}
+     if(v.is_uploader){
+      const form=document.createElement("form");form.className="highlight-form";
+      form.innerHTML=`<h6>Add a highlight to your video</h6><label>Timestamp (MM:SS or HH:MM:SS)<input name="timestamp" required placeholder="02:15"></label><label>Highlight title<input name="title" required maxlength="100" placeholder="e.g. Introduction to variables"></label><label>Short description (optional)<input name="description" maxlength="300" placeholder="What will learners find here?"></label><button class="btn primary" type="submit">Add highlight</button>`;
+      form.onsubmit=async e=>{e.preventDefault();const fd=new FormData(form),seconds=parseVideoTime(fd.get("timestamp"));if(seconds===null){toast("Enter a valid timestamp like 02:15.");return}if(Number.isFinite(player.duration)&&seconds>player.duration){toast("Timestamp is beyond the video duration.");return}const button=form.querySelector("button");button.disabled=true;try{const r=await api(`/api/exchanges/${ex.id}/videos/${v.id}/highlights`,{method:"POST",body:JSON.stringify({timestamp_seconds:seconds,title:fd.get("title"),description:fd.get("description")})});toast(r.message);loadExchanges()}catch(err){toast(err.message)}finally{button.disabled=false}};
+      highlights.appendChild(form);
+     }
+     wrap.appendChild(highlights);videos.appendChild(wrap);
+    });
     card.appendChild(videos);
     const finish=document.createElement("div");finish.className="exchange-finish";
     const doneText=document.createElement("p");doneText.textContent="After watching both explanations, each student should mark this exchange complete.";
