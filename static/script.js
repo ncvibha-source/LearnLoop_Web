@@ -609,3 +609,54 @@ $("#completeLesson")?.addEventListener("click",async(e)=>{
   button.textContent="Mark lesson complete";
  }
 });
+/* Temporary local-only video highlights preview. No file or demo data is sent to the server. */
+(()=>{
+ const open=$("#openHighlightDemo"), panel=$("#highlightDemo"), close=$("#closeHighlightDemo");
+ const file=$("#demoVideoFile"), player=$("#demoVideoPlayer"), form=$("#demoHighlightForm"), list=$("#demoHighlightList");
+ if(!open||!panel||!file||!player||!form||!list)return;
+ let objectUrl=null, demoHighlights=[];
+ function parseDemoTime(value){
+  const parts=String(value||"").trim().split(":").map(Number);
+  if(!parts.length||parts.length>3||parts.some(n=>!Number.isInteger(n)||n<0))return null;
+  if(parts.length===1)return parts[0];
+  if(parts.length===2)return parts[0]*60+parts[1];
+  if(parts[1]>59||parts[2]>59)return null;
+  return parts[0]*3600+parts[1]*60+parts[2];
+ }
+ function timeLabel(seconds){
+  const n=Math.max(0,Number(seconds)||0),h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=Math.floor(n%60);
+  return h?[h,m,s].map((v,i)=>i?String(v).padStart(2,"0"):String(v)).join(":"):[m,s].map(v=>String(v).padStart(2,"0")).join(":");
+ }
+ function render(){
+  list.innerHTML="";
+  if(!demoHighlights.length){const p=document.createElement("p");p.className="video-highlights-empty";p.textContent="No demo highlights yet. Add one above.";list.appendChild(p);return}
+  demoHighlights.sort((a,b)=>a.seconds-b.seconds).forEach((h,index)=>{
+   const item=document.createElement("div");item.className="video-highlight-item";
+   const jump=document.createElement("button");jump.type="button";jump.className="video-highlight-jump";jump.textContent=timeLabel(h.seconds);jump.onclick=()=>{player.currentTime=h.seconds;player.play().catch(()=>{})};
+   const detail=document.createElement("div");detail.className="video-highlight-detail";
+   const title=document.createElement("strong");title.textContent=h.title;detail.appendChild(title);
+   if(h.description){const desc=document.createElement("p");desc.textContent=h.description;detail.appendChild(desc)}
+   const del=document.createElement("button");del.type="button";del.className="btn outline";del.textContent="Remove";del.onclick=()=>{demoHighlights=demoHighlights.filter((_,i)=>i!==index);render()};
+   item.append(jump,detail,del);list.appendChild(item);
+  });
+ }
+ open.addEventListener("click",()=>{panel.classList.remove("hidden");panel.scrollIntoView({behavior:"smooth",block:"start"})});
+ close.addEventListener("click",()=>panel.classList.add("hidden"));
+ file.addEventListener("change",()=>{
+  if(objectUrl)URL.revokeObjectURL(objectUrl);
+  const chosen=file.files&&file.files[0];demoHighlights=[];render();
+  if(!chosen){player.removeAttribute("src");player.load();return}
+  if(!chosen.type.startsWith("video/")){toast("Please choose a video file.");file.value="";return}
+  objectUrl=URL.createObjectURL(chosen);player.src=objectUrl;player.load();
+ });
+ form.addEventListener("submit",e=>{
+  e.preventDefault();
+  if(!player.src){toast("Choose a video first.");return}
+  const data=new FormData(form),seconds=parseDemoTime(data.get("timestamp"));
+  if(seconds===null){toast("Enter a timestamp like 02:15.");return}
+  if(Number.isFinite(player.duration)&&seconds>player.duration){toast("That timestamp is beyond the video duration.");return}
+  demoHighlights.push({seconds,title:String(data.get("title")).trim(),description:String(data.get("description")).trim()});
+  form.reset();render();toast("Demo highlight added.");
+ });
+ window.addEventListener("beforeunload",()=>{if(objectUrl)URL.revokeObjectURL(objectUrl)});
+})();
