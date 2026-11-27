@@ -70,6 +70,19 @@ CREATE TABLE IF NOT EXISTS exchange_videos (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP::text
 );
 
+
+CREATE TABLE IF NOT EXISTS video_highlights (
+    id BIGSERIAL PRIMARY KEY,
+    video_id BIGINT NOT NULL REFERENCES exchange_videos(id) ON DELETE CASCADE,
+    timestamp_seconds INTEGER NOT NULL CHECK (timestamp_seconds >= 0),
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP::text
+);
+
+CREATE INDEX IF NOT EXISTS idx_video_highlights_video_time
+    ON video_highlights(video_id, timestamp_seconds);
+
 CREATE TABLE IF NOT EXISTS lesson_completions (
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     lesson_id TEXT NOT NULL,
