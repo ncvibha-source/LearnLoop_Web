@@ -51,7 +51,7 @@ def init_db():
     conn = db()
     count = conn.execute("SELECT COUNT(*) FROM ll_skills WHERE kind='catalog'").fetchone()[0]
     if count == 0:
-        ll_skills = [
+        skills = [
             ("Python","technology","Programming, automation and problem solving","Beginner"),
             ("Java","technology","Object-oriented programming and application development","Beginner"),
             ("Web Development","technology","HTML, CSS, JavaScript and modern web basics","Beginner"),
@@ -60,7 +60,7 @@ def init_db():
             ("Cybersecurity","technology","Security fundamentals and safe digital practices","Beginner"),
             ("UI/UX Design","design","User interface design, wireframes and user experience","Beginner"),
             ("Canva","design","Visual design, presentations and social graphics","Beginner"),
-            ("Public Speaking","communication","Confidence, presentation and speaking ll_skills","Beginner"),
+            ("Public Speaking","communication","Confidence, presentation and speaking skills","Beginner"),
             ("Content Writing","creative","Writing clear, useful and engaging content","Beginner"),
             ("Video Editing","creative","Edit videos, reels and short-form content","Beginner"),
             ("Photography","creative","Composition, lighting and mobile photography","Beginner"),
@@ -70,7 +70,7 @@ def init_db():
         ]
         conn.executemany(
             "INSERT INTO ll_skills(name,category,description,level,kind) VALUES(?,?,?,?,?)",
-            [(a,b,c,d,"catalog") for a,b,c,d in ll_skills]
+            [(a,b,c,d,"catalog") for a,b,c,d in skills]
         )
     conn.commit()
     conn.close()
@@ -284,13 +284,13 @@ def dashboard():
     conn=db()
     p=conn.execute("SELECT * FROM ll_profiles WHERE user_id=?",(user["id"],)).fetchone()
     sessions=conn.execute("SELECT COUNT(*) FROM ll_learning_sessions WHERE user_id=?",(user["id"],)).fetchone()[0]
-    ll_notes=conn.execute("SELECT COUNT(*) FROM ll_notes WHERE user_id=?",(user["id"],)).fetchone()[0]
-    ll_reflections=conn.execute("SELECT COUNT(*) FROM ll_reflections WHERE user_id=?",(user["id"],)).fetchone()[0]
+    notes=conn.execute("SELECT COUNT(*) FROM ll_notes WHERE user_id=?",(user["id"],)).fetchone()[0]
+    reflections=conn.execute("SELECT COUNT(*) FROM ll_reflections WHERE user_id=?",(user["id"],)).fetchone()[0]
     conn.close()
     teach=[x.strip() for x in (p["teach_skills"] if p else "").split(",") if x.strip()]
     learn=[x.strip() for x in (p["learn_skills"] if p else "").split(",") if x.strip()]
     return jsonify(success=True,name=user["name"],teachCount=len(teach),learnCount=len(learn),
-                   sessions=sessions,ll_notes=ll_notes,ll_reflections=ll_reflections,teachSkills=teach,learnSkills=learn)
+                   sessions=sessions,notes=notes,reflections=reflections,teachSkills=teach,learnSkills=learn)
 
 
 def exchange_for_user(conn, exchange_id, user_id):
