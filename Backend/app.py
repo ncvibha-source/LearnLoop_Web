@@ -333,7 +333,14 @@ def list_exchanges():
     for row in rows:
         item=dict(row); item["is_requester"]=(row["requester_id"]==user["id"])
         vids=conn.execute("SELECT id,uploader_id,skill,title,original_name,created_at FROM exchange_videos WHERE exchange_id=? ORDER BY created_at DESC",(row["id"],)).fetchall()
-        item["videos"]=[dict(v) for v in vids]
+        item["videos"]=[]
+        for video_row in vids:
+            video_item=dict(video_row)
+            video_item["is_uploader"]=(video_row["uploader_id"]==user["id"])
+            highlights=conn.execute("""SELECT id,timestamp_seconds,title,description FROM video_highlights
+                WHERE video_id=? ORDER BY timestamp_seconds,id""",(video_row["id"],)).fetchall()
+            video_item["highlights"]=[dict(h) for h in highlights]
+            item["videos"].append(video_item)
         result.append(item)
     conn.close(); return jsonify(success=True,exchanges=result)
 
@@ -366,6 +373,10 @@ def upload_exchange_video(exchange_id):
     conn=db(); ex=exchange_for_user(conn,exchange_id,user["id"])
     if not ex: conn.close(); return jsonify(success=False,message="Exchange not found."),404
     if ex["status"]!="accepted": conn.close(); return jsonify(success=False,message="The other student must accept the exchange before videos can be uploaded."),403
+    existing=conn.execute("SELECT id FROM exchange_videos WHERE exchange_id=? AND uploader_id=?",(exchange_id,user["id"])).fetchone()
+    if existing:
+        conn.close()
+        return jsonify(success=False,message="You have already uploaded your video for this exchange. Each student can upload one video."),409
     filename=f"exchange_{exchange_id}_{user['id']}_{uuid4().hex}.{ext}"
     try:
         video.save(os.path.join(UPLOAD_DIR,filename))
@@ -377,6 +388,70 @@ def upload_exchange_video(exchange_id):
         except OSError: pass
         conn.close(); raise
     conn.close(); return jsonify(success=True,message="Video uploaded to your private skill exchange.")
+
+@app.post("/api/exchanges/<int:exchange_id>/videos/<int:video_id>/highlights")
+def create_video_highlight(exchange_id, video_id):
+    user=current_user()
+    if not user: return jsonify(success=False,message="Please log in first."),401
+    data=request.get_json(silent=True) or {}
+    title=str(data.get("title","")).strip()
+    description=str(data.get("description","")).strip()
+    try: timestamp=int(data.get("timestamp_seconds"))
+    except (TypeError,ValueError): return jsonify(success=False,message="Enter a valid timestamp in seconds."),400
+    if timestamp<0: return jsonify(success=False,message="Timestamp cannot be negative."),400
+    if not title or len(title)>100: return jsonify(success=False,message="Enter a highlight title (up to 100 characters)."),400
+    if len(description)>300: return jsonify(success=False,message="Description must be 300 characters or fewer."),400
+    conn=db()
+    ex=exchange_for_user(conn,exchange_id,user["id"])
+    video=conn.execute("SELECT id,uploader_id FROM exchange_videos WHERE id=? AND exchange_id=?",(video_id,exchange_id)).fetchone()
+    if not ex or ex["status"]!="accepted" or not video:
+        conn.close(); return jsonify(success=False,message="Video not found in an accepted exchange."),404
+    if video["uploader_id"]!=user["id"]:
+        conn.close(); return jsonify(success=False,message="Only the video uploader can manage its highlights."),403
+    cur=conn.execute("""INSERT INTO video_highlights(video_id,timestamp_seconds,title,description)
+        VALUES(?,?,?,?) RETURNING id""",(video_id,timestamp,title,description))
+    highlight_id=cur.fetchone()[0]
+    conn.commit(); conn.close()
+    return jsonify(success=True,id=highlight_id,message="Video highlight added.")
+
+@app.put("/api/exchanges/<int:exchange_id>/videos/<int:video_id>/highlights/<int:highlight_id>")
+def update_video_highlight(exchange_id, video_id, highlight_id):
+    user=current_user()
+    if not user: return jsonify(success=False,message="Please log in first."),401
+    data=request.get_json(silent=True) or {}
+    title=str(data.get("title","")).strip()
+    description=str(data.get("description","")).strip()
+    try: timestamp=int(data.get("timestamp_seconds"))
+    except (TypeError,ValueError): return jsonify(success=False,message="Enter a valid timestamp in seconds."),400
+    if timestamp<0 or not title or len(title)>100 or len(description)>300:
+        return jsonify(success=False,message="Check the highlight title, timestamp and description."),400
+    conn=db()
+    video=conn.execute("""SELECT v.uploader_id FROM exchange_videos v JOIN peer_exchanges e ON e.id=v.exchange_id
+        WHERE v.id=? AND v.exchange_id=? AND e.status='accepted' AND (e.requester_id=? OR e.peer_id=?)""",
+        (video_id,exchange_id,user["id"],user["id"])).fetchone()
+    if not video: conn.close(); return jsonify(success=False,message="Video not found."),404
+    if video["uploader_id"]!=user["id"]: conn.close(); return jsonify(success=False,message="Only the uploader can edit highlights."),403
+    cur=conn.execute("""UPDATE video_highlights SET timestamp_seconds=?,title=?,description=?
+        WHERE id=? AND video_id=?""",(timestamp,title,description,highlight_id,video_id))
+    if cur.rowcount==0: conn.close(); return jsonify(success=False,message="Highlight not found."),404
+    conn.commit(); conn.close()
+    return jsonify(success=True,message="Highlight updated.")
+
+@app.delete("/api/exchanges/<int:exchange_id>/videos/<int:video_id>/highlights/<int:highlight_id>")
+def delete_video_highlight(exchange_id, video_id, highlight_id):
+    user=current_user()
+    if not user: return jsonify(success=False,message="Please log in first."),401
+    conn=db()
+    video=conn.execute("""SELECT v.uploader_id FROM exchange_videos v JOIN peer_exchanges e ON e.id=v.exchange_id
+        WHERE v.id=? AND v.exchange_id=? AND e.status='accepted' AND (e.requester_id=? OR e.peer_id=?)""",
+        (video_id,exchange_id,user["id"],user["id"])).fetchone()
+    if not video: conn.close(); return jsonify(success=False,message="Video not found."),404
+    if video["uploader_id"]!=user["id"]: conn.close(); return jsonify(success=False,message="Only the uploader can delete highlights."),403
+    cur=conn.execute("DELETE FROM video_highlights WHERE id=? AND video_id=?",(highlight_id,video_id))
+    if cur.rowcount==0: conn.close(); return jsonify(success=False,message="Highlight not found."),404
+    conn.commit(); conn.close()
+    return jsonify(success=True,message="Highlight deleted.")
+
 
 @app.get("/api/exchanges/<int:exchange_id>/videos/<int:video_id>")
 def watch_exchange_video(exchange_id,video_id):
