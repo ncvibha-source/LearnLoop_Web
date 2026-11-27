@@ -49,9 +49,9 @@ def db():
 def init_db():
     # All tables are created once in Supabase using Backend/schema.sql.
     conn = db()
-    count = conn.execute("SELECT COUNT(*) FROM skills WHERE kind='catalog'").fetchone()[0]
+    count = conn.execute("SELECT COUNT(*) FROM ll_skills WHERE kind='catalog'").fetchone()[0]
     if count == 0:
-        skills = [
+        ll_skills = [
             ("Python","technology","Programming, automation and problem solving","Beginner"),
             ("Java","technology","Object-oriented programming and application development","Beginner"),
             ("Web Development","technology","HTML, CSS, JavaScript and modern web basics","Beginner"),
@@ -60,7 +60,7 @@ def init_db():
             ("Cybersecurity","technology","Security fundamentals and safe digital practices","Beginner"),
             ("UI/UX Design","design","User interface design, wireframes and user experience","Beginner"),
             ("Canva","design","Visual design, presentations and social graphics","Beginner"),
-            ("Public Speaking","communication","Confidence, presentation and speaking skills","Beginner"),
+            ("Public Speaking","communication","Confidence, presentation and speaking ll_skills","Beginner"),
             ("Content Writing","creative","Writing clear, useful and engaging content","Beginner"),
             ("Video Editing","creative","Edit videos, reels and short-form content","Beginner"),
             ("Photography","creative","Composition, lighting and mobile photography","Beginner"),
@@ -69,8 +69,8 @@ def init_db():
             ("App Development","technology","Build mobile applications and interfaces","Beginner")
         ]
         conn.executemany(
-            "INSERT INTO skills(name,category,description,level,kind) VALUES(?,?,?,?,?)",
-            [(a,b,c,d,"catalog") for a,b,c,d in skills]
+            "INSERT INTO ll_skills(name,category,description,level,kind) VALUES(?,?,?,?,?)",
+            [(a,b,c,d,"catalog") for a,b,c,d in ll_skills]
         )
     conn.commit()
     conn.close()
@@ -81,7 +81,7 @@ def current_user():
     if not uid:
         return None
     conn = db()
-    user = conn.execute("SELECT id,name,email FROM users WHERE id=?", (uid,)).fetchone()
+    user = conn.execute("SELECT id,name,email FROM ll_users WHERE id=?", (uid,)).fetchone()
     conn.close()
     return user
 
@@ -96,7 +96,7 @@ def skills():
     conn = db()
     rows = conn.execute("""
         SELECT id,name,category,description,level,owner_id,kind
-        FROM skills
+        FROM ll_skills
         WHERE (?='' OR lower(name) LIKE ? OR lower(description) LIKE ?)
           AND (?='all' OR lower(category)=?)
         ORDER BY kind='catalog' DESC, name
@@ -124,12 +124,12 @@ def matches():
         mode = "teach_me"
 
     conn = db()
-    mine = conn.execute("SELECT teach_skills, learn_skills FROM profiles WHERE user_id=?", (user["id"],)).fetchone()
+    mine = conn.execute("SELECT teach_skills, learn_skills FROM ll_profiles WHERE user_id=?", (user["id"],)).fetchone()
     my_teach = split_skills(mine["teach_skills"] if mine else "")
     my_learn = split_skills(mine["learn_skills"] if mine else "")
     rows = conn.execute("""
         SELECT u.id, u.name, p.teach_skills, p.learn_skills, p.bio
-        FROM users u JOIN profiles p ON p.user_id=u.id
+        FROM ll_users u JOIN ll_profiles p ON p.user_id=u.id
         WHERE u.id != ?
         ORDER BY LOWER(u.name)
     """, (user["id"],)).fetchall()
@@ -189,13 +189,13 @@ def signup():
     if len(password) < 8:
         return jsonify(success=False,message="Password must contain at least 8 characters."),400
     conn = db()
-    if conn.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone():
+    if conn.execute("SELECT id FROM ll_users WHERE email=?", (email,)).fetchone():
         conn.close()
         return jsonify(success=False,message="An account with this email already exists."),409
-    cur = conn.execute("INSERT INTO users(name,email,password_hash) VALUES(?,?,?) RETURNING id",
+    cur = conn.execute("INSERT INTO ll_users(name,email,password_hash) VALUES(?,?,?) RETURNING id",
                        (name,email,generate_password_hash(password)))
     uid = cur.fetchone()[0]
-    conn.execute("INSERT INTO profiles(user_id) VALUES(?)",(uid,))
+    conn.execute("INSERT INTO ll_profiles(user_id) VALUES(?)",(uid,))
     conn.commit(); conn.close()
     session["user_id"] = uid
     return jsonify(success=True,message="Account created successfully!",user={"id":uid,"name":name,"email":email})
@@ -206,7 +206,7 @@ def login():
     email = str(data.get("email","")).strip().lower()
     password = str(data.get("password",""))
     conn = db()
-    user = conn.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+    user = conn.execute("SELECT * FROM ll_users WHERE email=?", (email,)).fetchone()
     conn.close()
     if not user or not check_password_hash(user["password_hash"],password):
         return jsonify(success=False,message="Invalid email or password."),401
@@ -219,7 +219,7 @@ def me():
     if not user:
         return jsonify(logged_in=False)
     conn=db()
-    profile=conn.execute("SELECT * FROM profiles WHERE user_id=?",(user["id"],)).fetchone()
+    profile=conn.execute("SELECT * FROM ll_profiles WHERE user_id=?",(user["id"],)).fetchone()
     conn.close()
     return jsonify(logged_in=True,user=dict(user),profile=dict(profile) if profile else {})
 
@@ -234,7 +234,7 @@ def save_profile():
     if not user: return jsonify(success=False,message="Please log in first."),401
     data=request.get_json(silent=True) or {}
     conn=db()
-    conn.execute("""INSERT INTO profiles(user_id,teach_skills,learn_skills,bio)
+    conn.execute("""INSERT INTO ll_profiles(user_id,teach_skills,learn_skills,bio)
                     VALUES(?,?,?,?)
                     ON CONFLICT(user_id) DO UPDATE SET
                     teach_skills=excluded.teach_skills,
@@ -254,7 +254,7 @@ def create_session():
     goal=str(data.get("goal","")).strip()
     if not skill: return jsonify(success=False,message="Enter a session skill."),400
     conn=db()
-    cur=conn.execute("INSERT INTO learning_sessions(user_id,skill,goal) VALUES(?,?,?) RETURNING id",(user["id"],skill,goal))
+    cur=conn.execute("INSERT INTO ll_learning_sessions(user_id,skill,goal) VALUES(?,?,?) RETURNING id",(user["id"],skill,goal))
     sid=cur.fetchone()[0]
     conn.commit(); conn.close()
     return jsonify(success=True,message="Learning session created.",id=sid)
@@ -265,7 +265,7 @@ def save_note():
     if not user: return jsonify(success=False,message="Please log in first."),401
     content=str((request.get_json(silent=True) or {}).get("content","")).strip()
     if not content: return jsonify(success=False,message="Write a note first."),400
-    conn=db(); conn.execute("INSERT INTO notes(user_id,content) VALUES(?,?)",(user["id"],content)); conn.commit(); conn.close()
+    conn=db(); conn.execute("INSERT INTO ll_notes(user_id,content) VALUES(?,?)",(user["id"],content)); conn.commit(); conn.close()
     return jsonify(success=True,message="Notes saved successfully.")
 
 @app.post("/api/reflections")
@@ -274,7 +274,7 @@ def save_reflection():
     if not user: return jsonify(success=False,message="Please log in first."),401
     content=str((request.get_json(silent=True) or {}).get("content","")).strip()
     if not content: return jsonify(success=False,message="Write your reflection first."),400
-    conn=db(); conn.execute("INSERT INTO reflections(user_id,content) VALUES(?,?)",(user["id"],content)); conn.commit(); conn.close()
+    conn=db(); conn.execute("INSERT INTO ll_reflections(user_id,content) VALUES(?,?)",(user["id"],content)); conn.commit(); conn.close()
     return jsonify(success=True,message="Reflection saved successfully.")
 
 @app.get("/api/dashboard")
@@ -282,19 +282,19 @@ def dashboard():
     user=current_user()
     if not user: return jsonify(success=False,message="Please log in first."),401
     conn=db()
-    p=conn.execute("SELECT * FROM profiles WHERE user_id=?",(user["id"],)).fetchone()
-    sessions=conn.execute("SELECT COUNT(*) FROM learning_sessions WHERE user_id=?",(user["id"],)).fetchone()[0]
-    notes=conn.execute("SELECT COUNT(*) FROM notes WHERE user_id=?",(user["id"],)).fetchone()[0]
-    reflections=conn.execute("SELECT COUNT(*) FROM reflections WHERE user_id=?",(user["id"],)).fetchone()[0]
+    p=conn.execute("SELECT * FROM ll_profiles WHERE user_id=?",(user["id"],)).fetchone()
+    sessions=conn.execute("SELECT COUNT(*) FROM ll_learning_sessions WHERE user_id=?",(user["id"],)).fetchone()[0]
+    ll_notes=conn.execute("SELECT COUNT(*) FROM ll_notes WHERE user_id=?",(user["id"],)).fetchone()[0]
+    ll_reflections=conn.execute("SELECT COUNT(*) FROM ll_reflections WHERE user_id=?",(user["id"],)).fetchone()[0]
     conn.close()
     teach=[x.strip() for x in (p["teach_skills"] if p else "").split(",") if x.strip()]
     learn=[x.strip() for x in (p["learn_skills"] if p else "").split(",") if x.strip()]
     return jsonify(success=True,name=user["name"],teachCount=len(teach),learnCount=len(learn),
-                   sessions=sessions,notes=notes,reflections=reflections,teachSkills=teach,learnSkills=learn)
+                   sessions=sessions,ll_notes=ll_notes,ll_reflections=ll_reflections,teachSkills=teach,learnSkills=learn)
 
 
 def exchange_for_user(conn, exchange_id, user_id):
-    return conn.execute("""SELECT * FROM peer_exchanges WHERE id=? AND
+    return conn.execute("""SELECT * FROM ll_peer_exchanges WHERE id=? AND
         (requester_id=? OR peer_id=?)""", (exchange_id,user_id,user_id)).fetchone()
 
 @app.post("/api/exchanges")
@@ -306,16 +306,16 @@ def create_exchange():
     except (TypeError,ValueError): return jsonify(success=False,message="Choose a valid peer."),400
     teaches=str(data.get("teaches"," ")).strip()
     learns=str(data.get("learns"," ")).strip()
-    if not teaches or not learns: return jsonify(success=False,message="Choose both skills for the exchange."),400
+    if not teaches or not learns: return jsonify(success=False,message="Choose both ll_skills for the exchange."),400
     if peer_id==user["id"]: return jsonify(success=False,message="You cannot start an exchange with yourself."),400
     conn=db()
-    peer=conn.execute("SELECT id FROM users WHERE id=?",(peer_id,)).fetchone()
+    peer=conn.execute("SELECT id FROM ll_users WHERE id=?",(peer_id,)).fetchone()
     if not peer: conn.close(); return jsonify(success=False,message="Student not found."),404
-    existing=conn.execute("""SELECT id FROM peer_exchanges WHERE
+    existing=conn.execute("""SELECT id FROM ll_peer_exchanges WHERE
         ((requester_id=? AND peer_id=?) OR (requester_id=? AND peer_id=?)) AND status IN ('pending','accepted')""",
         (user["id"],peer_id,peer_id,user["id"])).fetchone()
     if existing: conn.close(); return jsonify(success=False,message="An exchange request already exists with this student."),409
-    cur=conn.execute("INSERT INTO peer_exchanges(requester_id,peer_id,requester_teaches,requester_learns) VALUES(?,?,?,?) RETURNING id",
+    cur=conn.execute("INSERT INTO ll_peer_exchanges(requester_id,peer_id,requester_teaches,requester_learns) VALUES(?,?,?,?) RETURNING id",
                      (user["id"],peer_id,teaches,learns))
     eid=cur.fetchone()[0]
     conn.commit(); conn.close()
@@ -327,17 +327,17 @@ def list_exchanges():
     if not user: return jsonify(success=False,message="Please log in first."),401
     conn=db()
     rows=conn.execute("""SELECT e.*, a.name AS requester_name, b.name AS peer_name
-        FROM peer_exchanges e JOIN users a ON a.id=e.requester_id JOIN users b ON b.id=e.peer_id
+        FROM ll_peer_exchanges e JOIN ll_users a ON a.id=e.requester_id JOIN ll_users b ON b.id=e.peer_id
         WHERE e.requester_id=? OR e.peer_id=? ORDER BY e.created_at DESC""",(user["id"],user["id"])).fetchall()
     result=[]
     for row in rows:
         item=dict(row); item["is_requester"]=(row["requester_id"]==user["id"])
-        vids=conn.execute("SELECT id,uploader_id,skill,title,original_name,created_at FROM exchange_videos WHERE exchange_id=? ORDER BY created_at DESC",(row["id"],)).fetchall()
+        vids=conn.execute("SELECT id,uploader_id,skill,title,original_name,created_at FROM ll_exchange_videos WHERE exchange_id=? ORDER BY created_at DESC",(row["id"],)).fetchall()
         item["videos"]=[]
         for video_row in vids:
             video_item=dict(video_row)
             video_item["is_uploader"]=(video_row["uploader_id"]==user["id"])
-            highlights=conn.execute("""SELECT id,timestamp_seconds,title,description FROM video_highlights
+            highlights=conn.execute("""SELECT id,timestamp_seconds,title,description FROM ll_video_highlights
                 WHERE video_id=? ORDER BY timestamp_seconds,id""",(video_row["id"],)).fetchall()
             video_item["highlights"]=[dict(h) for h in highlights]
             item["videos"].append(video_item)
@@ -350,12 +350,12 @@ def respond_exchange(exchange_id):
     if not user: return jsonify(success=False,message="Please log in first."),401
     action=str((request.get_json(silent=True) or {}).get("action",""))
     if action not in ("accept","reject"): return jsonify(success=False,message="Choose accept or reject."),400
-    conn=db(); ex=conn.execute("SELECT * FROM peer_exchanges WHERE id=?",(exchange_id,)).fetchone()
+    conn=db(); ex=conn.execute("SELECT * FROM ll_peer_exchanges WHERE id=?",(exchange_id,)).fetchone()
     if not ex: conn.close(); return jsonify(success=False,message="Exchange not found."),404
     if ex["peer_id"]!=user["id"]: conn.close(); return jsonify(success=False,message="Only the invited student can respond."),403
     if ex["status"]!="pending": conn.close(); return jsonify(success=False,message="This request has already been answered."),409
     status="accepted" if action=="accept" else "rejected"
-    conn.execute("UPDATE peer_exchanges SET status=? WHERE id=?",(status,exchange_id)); conn.commit(); conn.close()
+    conn.execute("UPDATE ll_peer_exchanges SET status=? WHERE id=?",(status,exchange_id)); conn.commit(); conn.close()
     return jsonify(success=True,message="Exchange accepted. You can now share videos." if action=="accept" else "Exchange request declined.")
 
 @app.post("/api/exchanges/<int:exchange_id>/videos")
@@ -373,14 +373,14 @@ def upload_exchange_video(exchange_id):
     conn=db(); ex=exchange_for_user(conn,exchange_id,user["id"])
     if not ex: conn.close(); return jsonify(success=False,message="Exchange not found."),404
     if ex["status"]!="accepted": conn.close(); return jsonify(success=False,message="The other student must accept the exchange before videos can be uploaded."),403
-    existing=conn.execute("SELECT id FROM exchange_videos WHERE exchange_id=? AND uploader_id=?",(exchange_id,user["id"])).fetchone()
+    existing=conn.execute("SELECT id FROM ll_exchange_videos WHERE exchange_id=? AND uploader_id=?",(exchange_id,user["id"])).fetchone()
     if existing:
         conn.close()
         return jsonify(success=False,message="You have already uploaded your video for this exchange. Each student can upload one video."),409
     filename=f"exchange_{exchange_id}_{user['id']}_{uuid4().hex}.{ext}"
     try:
         video.save(os.path.join(UPLOAD_DIR,filename))
-        conn.execute("INSERT INTO exchange_videos(exchange_id,uploader_id,skill,title,filename,original_name) VALUES(?,?,?,?,?,?)",
+        conn.execute("INSERT INTO ll_exchange_videos(exchange_id,uploader_id,skill,title,filename,original_name) VALUES(?,?,?,?,?,?)",
                      (exchange_id,user["id"],skill,title,filename,original))
         conn.commit()
     except Exception:
@@ -403,12 +403,12 @@ def create_video_highlight(exchange_id, video_id):
     if len(description)>300: return jsonify(success=False,message="Description must be 300 characters or fewer."),400
     conn=db()
     ex=exchange_for_user(conn,exchange_id,user["id"])
-    video=conn.execute("SELECT id,uploader_id FROM exchange_videos WHERE id=? AND exchange_id=?",(video_id,exchange_id)).fetchone()
+    video=conn.execute("SELECT id,uploader_id FROM ll_exchange_videos WHERE id=? AND exchange_id=?",(video_id,exchange_id)).fetchone()
     if not ex or ex["status"]!="accepted" or not video:
         conn.close(); return jsonify(success=False,message="Video not found in an accepted exchange."),404
     if video["uploader_id"]!=user["id"]:
         conn.close(); return jsonify(success=False,message="Only the video uploader can manage its highlights."),403
-    cur=conn.execute("""INSERT INTO video_highlights(video_id,timestamp_seconds,title,description)
+    cur=conn.execute("""INSERT INTO ll_video_highlights(video_id,timestamp_seconds,title,description)
         VALUES(?,?,?,?) RETURNING id""",(video_id,timestamp,title,description))
     highlight_id=cur.fetchone()[0]
     conn.commit(); conn.close()
@@ -426,12 +426,12 @@ def update_video_highlight(exchange_id, video_id, highlight_id):
     if timestamp<0 or not title or len(title)>100 or len(description)>300:
         return jsonify(success=False,message="Check the highlight title, timestamp and description."),400
     conn=db()
-    video=conn.execute("""SELECT v.uploader_id FROM exchange_videos v JOIN peer_exchanges e ON e.id=v.exchange_id
+    video=conn.execute("""SELECT v.uploader_id FROM ll_exchange_videos v JOIN ll_peer_exchanges e ON e.id=v.exchange_id
         WHERE v.id=? AND v.exchange_id=? AND e.status='accepted' AND (e.requester_id=? OR e.peer_id=?)""",
         (video_id,exchange_id,user["id"],user["id"])).fetchone()
     if not video: conn.close(); return jsonify(success=False,message="Video not found."),404
     if video["uploader_id"]!=user["id"]: conn.close(); return jsonify(success=False,message="Only the uploader can edit highlights."),403
-    cur=conn.execute("""UPDATE video_highlights SET timestamp_seconds=?,title=?,description=?
+    cur=conn.execute("""UPDATE ll_video_highlights SET timestamp_seconds=?,title=?,description=?
         WHERE id=? AND video_id=?""",(timestamp,title,description,highlight_id,video_id))
     if cur.rowcount==0: conn.close(); return jsonify(success=False,message="Highlight not found."),404
     conn.commit(); conn.close()
@@ -442,12 +442,12 @@ def delete_video_highlight(exchange_id, video_id, highlight_id):
     user=current_user()
     if not user: return jsonify(success=False,message="Please log in first."),401
     conn=db()
-    video=conn.execute("""SELECT v.uploader_id FROM exchange_videos v JOIN peer_exchanges e ON e.id=v.exchange_id
+    video=conn.execute("""SELECT v.uploader_id FROM ll_exchange_videos v JOIN ll_peer_exchanges e ON e.id=v.exchange_id
         WHERE v.id=? AND v.exchange_id=? AND e.status='accepted' AND (e.requester_id=? OR e.peer_id=?)""",
         (video_id,exchange_id,user["id"],user["id"])).fetchone()
     if not video: conn.close(); return jsonify(success=False,message="Video not found."),404
     if video["uploader_id"]!=user["id"]: conn.close(); return jsonify(success=False,message="Only the uploader can delete highlights."),403
-    cur=conn.execute("DELETE FROM video_highlights WHERE id=? AND video_id=?",(highlight_id,video_id))
+    cur=conn.execute("DELETE FROM ll_video_highlights WHERE id=? AND video_id=?",(highlight_id,video_id))
     if cur.rowcount==0: conn.close(); return jsonify(success=False,message="Highlight not found."),404
     conn.commit(); conn.close()
     return jsonify(success=True,message="Highlight deleted.")
@@ -458,7 +458,7 @@ def watch_exchange_video(exchange_id,video_id):
     user=current_user()
     if not user: return jsonify(success=False,message="Please log in first."),401
     conn=db(); ex=exchange_for_user(conn,exchange_id,user["id"])
-    video=conn.execute("SELECT filename FROM exchange_videos WHERE id=? AND exchange_id=?",(video_id,exchange_id)).fetchone() if ex and ex["status"]=="accepted" else None
+    video=conn.execute("SELECT filename FROM ll_exchange_videos WHERE id=? AND exchange_id=?",(video_id,exchange_id)).fetchone() if ex and ex["status"]=="accepted" else None
     conn.close()
     if not video: abort(404)
     return send_from_directory(UPLOAD_DIR,video["filename"],conditional=True)
@@ -466,10 +466,10 @@ def watch_exchange_video(exchange_id,video_id):
 
 BASIC_LESSON_IDS = {"html","python","sql","security","passwords","figma","canva","speaking","communication"}
 def issue_certificate(conn, uid, ctype, refid, title):
-    old=conn.execute("SELECT code FROM certificates WHERE user_id=? AND certificate_type=? AND reference_id=?",(uid,ctype,str(refid))).fetchone()
+    old=conn.execute("SELECT code FROM ll_certificates WHERE user_id=? AND certificate_type=? AND reference_id=?",(uid,ctype,str(refid))).fetchone()
     if old: return old["code"]
     code="LL-"+uuid4().hex[:4].upper()+"-"+uuid4().hex[:4].upper()
-    conn.execute("INSERT INTO certificates(code,user_id,certificate_type,reference_id,title) VALUES(?,?,?,?,?)",(code,uid,ctype,str(refid),title))
+    conn.execute("INSERT INTO ll_certificates(code,user_id,certificate_type,reference_id,title) VALUES(?,?,?,?,?)",(code,uid,ctype,str(refid),title))
     return code
 
 @app.post("/api/lessons/<lesson_id>/complete")
@@ -490,9 +490,9 @@ def complete_basic_lesson(lesson_id):
     if lesson_id not in lesson_titles:
         return jsonify(success=False,message="Unknown course."),404
     conn=db()
-    conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
+    conn.execute("INSERT INTO ll_lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
     course_code=issue_certificate(conn,user["id"],"basic_course",lesson_id,lesson_titles[lesson_id])
-    count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
+    count=conn.execute("SELECT COUNT(*) FROM ll_lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
     overall_code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(lesson_titles) else None
     conn.commit()
     conn.close()
@@ -525,9 +525,9 @@ def complete_basic_lesson_compat():
     conn=None
     try:
         conn=db()
-        conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
+        conn.execute("INSERT INTO ll_lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
         course_code=issue_certificate(conn,user["id"],"basic_course",lesson_id,lesson_titles[lesson_id])
-        count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
+        count=conn.execute("SELECT COUNT(*) FROM ll_lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
         overall_code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(lesson_titles) else None
         conn.commit()
         return jsonify(success=True,completed=count,total=len(lesson_titles),course_certificate_code=course_code,
@@ -545,7 +545,7 @@ def complete_basic_lesson_compat():
 
 @app.post("/api/lessons/sync-completions")
 def sync_basic_lesson_completions():
-    """Recover course completions saved in this browser before server certificates were enabled."""
+    """Recover course completions saved in this browser before server ll_certificates were enabled."""
     user=current_user()
     if not user:
         return jsonify(success=False,message="Please log in first."),401
@@ -568,9 +568,9 @@ def sync_basic_lesson_completions():
     completed_ids=list(dict.fromkeys(x for x in lesson_ids if isinstance(x,str) and x in valid_ids))
     conn=db()
     for lesson_id in completed_ids:
-        conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
+        conn.execute("INSERT INTO ll_lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
         issue_certificate(conn,user["id"],"basic_course",lesson_id,lesson_titles[lesson_id])
-    count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
+    count=conn.execute("SELECT COUNT(*) FROM ll_lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
     overall_code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(lesson_titles) else None
     conn.commit()
     conn.close()
@@ -579,7 +579,7 @@ def sync_basic_lesson_completions():
 
 @app.post("/api/certificates")
 def complete_course_via_certificates():
-    """Complete a Learn Basics course using the already deployed certificates API path."""
+    """Complete a Learn Basics course using the already deployed ll_certificates API path."""
     user=current_user()
     if not user:
         return jsonify(success=False,message="Log in to save course progress and receive a certificate."),401
@@ -601,9 +601,9 @@ def complete_course_via_certificates():
     conn=None
     try:
         conn=db()
-        conn.execute("INSERT INTO lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
+        conn.execute("INSERT INTO ll_lesson_completions(user_id,lesson_id) VALUES(?,?) ON CONFLICT(user_id,lesson_id) DO NOTHING",(user["id"],lesson_id))
         course_code=issue_certificate(conn,user["id"],"basic_course",lesson_id,lesson_titles[lesson_id])
-        count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
+        count=conn.execute("SELECT COUNT(*) FROM ll_lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]
         overall_code=issue_certificate(conn,user["id"],"basics","all-lessons","LearnLoop Learn Basics Certificate") if count>=len(lesson_titles) else None
         conn.commit()
         return jsonify(success=True,completed=count,total=len(lesson_titles),course_certificate_code=course_code,
@@ -622,9 +622,9 @@ def complete_course_via_certificates():
 def my_certificates():
     user=current_user()
     if not user: return jsonify(success=False,message="Please log in first."),401
-    conn=db(); rows=conn.execute("SELECT code,certificate_type,title,issued_at FROM certificates WHERE user_id=? ORDER BY issued_at DESC",(user["id"],)).fetchall()
-    count=conn.execute("SELECT COUNT(*) FROM lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]; conn.close()
-    return jsonify(success=True,certificates=[dict(r) for r in rows],basics_completed=count,total_basics=len(BASIC_LESSON_IDS))
+    conn=db(); rows=conn.execute("SELECT code,certificate_type,title,issued_at FROM ll_certificates WHERE user_id=? ORDER BY issued_at DESC",(user["id"],)).fetchall()
+    count=conn.execute("SELECT COUNT(*) FROM ll_lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]; conn.close()
+    return jsonify(success=True,ll_certificates=[dict(r) for r in rows],basics_completed=count,total_basics=len(BASIC_LESSON_IDS))
 
 @app.post("/api/exchanges/<int:exchange_id>/complete")
 def complete_exchange(exchange_id):
@@ -632,10 +632,10 @@ def complete_exchange(exchange_id):
     if not user: return jsonify(success=False,message="Please log in first."),401
     conn=db(); ex=exchange_for_user(conn,exchange_id,user["id"])
     if not ex or ex["status"]!="accepted": conn.close(); return jsonify(success=False,message="Accepted exchange not found."),404
-    contributors=conn.execute("SELECT COUNT(DISTINCT uploader_id) FROM exchange_videos WHERE exchange_id=?",(exchange_id,)).fetchone()[0]
+    contributors=conn.execute("SELECT COUNT(DISTINCT uploader_id) FROM ll_exchange_videos WHERE exchange_id=?",(exchange_id,)).fetchone()[0]
     if contributors<2: conn.close(); return jsonify(success=False,message="Both students must upload a video first."),400
-    conn.execute("INSERT INTO exchange_completions(exchange_id,user_id) VALUES(?,?) ON CONFLICT(exchange_id,user_id) DO NOTHING",(exchange_id,user["id"])); conn.commit()
-    done=conn.execute("SELECT COUNT(*) FROM exchange_completions WHERE exchange_id=?",(exchange_id,)).fetchone()[0]
+    conn.execute("INSERT INTO ll_exchange_completions(exchange_id,user_id) VALUES(?,?) ON CONFLICT(exchange_id,user_id) DO NOTHING",(exchange_id,user["id"])); conn.commit()
+    done=conn.execute("SELECT COUNT(*) FROM ll_exchange_completions WHERE exchange_id=?",(exchange_id,)).fetchone()[0]
     if done>=2:
         # Give each participant a separate certificate for the skill they learned.
         requester_skill=str(ex["requester_learns"]).strip()
@@ -650,7 +650,7 @@ def complete_exchange(exchange_id):
 @app.get("/certificate/<code>")
 def view_certificate(code):
     conn=db()
-    row=conn.execute("SELECT c.*,u.name FROM certificates c JOIN users u ON u.id=c.user_id WHERE c.code=?",(code,)).fetchone()
+    row=conn.execute("SELECT c.*,u.name FROM ll_certificates c JOIN ll_users u ON u.id=c.user_id WHERE c.code=?",(code,)).fetchone()
     conn.close()
     if not row: return "Certificate not found.",404
     name=html.escape(row["name"])
@@ -688,7 +688,7 @@ def view_certificate(code):
     </section></main><button onclick="window.print()">Print / Save as PDF</button></body></html>"""
 @app.get("/verify/<code>")
 def verify_certificate(code):
-    conn=db(); row=conn.execute("SELECT c.code,c.title,c.issued_at,u.name FROM certificates c JOIN users u ON u.id=c.user_id WHERE c.code=?",(code,)).fetchone(); conn.close()
+    conn=db(); row=conn.execute("SELECT c.code,c.title,c.issued_at,u.name FROM ll_certificates c JOIN ll_users u ON u.id=c.user_id WHERE c.code=?",(code,)).fetchone(); conn.close()
     if not row: return jsonify(valid=False,message="Certificate code not found."),404
     return jsonify(valid=True,certificate=dict(row),message="Valid LearnLoop certificate.")
 
