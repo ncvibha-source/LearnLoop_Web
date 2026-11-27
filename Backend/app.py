@@ -306,7 +306,7 @@ def create_exchange():
     except (TypeError,ValueError): return jsonify(success=False,message="Choose a valid peer."),400
     teaches=str(data.get("teaches"," ")).strip()
     learns=str(data.get("learns"," ")).strip()
-    if not teaches or not learns: return jsonify(success=False,message="Choose both ll_skills for the exchange."),400
+    if not teaches or not learns: return jsonify(success=False,message="Choose both skills for the exchange."),400
     if peer_id==user["id"]: return jsonify(success=False,message="You cannot start an exchange with yourself."),400
     conn=db()
     peer=conn.execute("SELECT id FROM ll_users WHERE id=?",(peer_id,)).fetchone()
@@ -545,7 +545,7 @@ def complete_basic_lesson_compat():
 
 @app.post("/api/lessons/sync-completions")
 def sync_basic_lesson_completions():
-    """Recover course completions saved in this browser before server ll_certificates were enabled."""
+    """Recover course completions saved in this browser before server certificates were enabled."""
     user=current_user()
     if not user:
         return jsonify(success=False,message="Please log in first."),401
@@ -579,7 +579,7 @@ def sync_basic_lesson_completions():
 
 @app.post("/api/certificates")
 def complete_course_via_certificates():
-    """Complete a Learn Basics course using the already deployed ll_certificates API path."""
+    """Complete a Learn Basics course using the already deployed certificates API path."""
     user=current_user()
     if not user:
         return jsonify(success=False,message="Log in to save course progress and receive a certificate."),401
@@ -624,7 +624,7 @@ def my_certificates():
     if not user: return jsonify(success=False,message="Please log in first."),401
     conn=db(); rows=conn.execute("SELECT code,certificate_type,title,issued_at FROM ll_certificates WHERE user_id=? ORDER BY issued_at DESC",(user["id"],)).fetchall()
     count=conn.execute("SELECT COUNT(*) FROM ll_lesson_completions WHERE user_id=?",(user["id"],)).fetchone()[0]; conn.close()
-    return jsonify(success=True,ll_certificates=[dict(r) for r in rows],basics_completed=count,total_basics=len(BASIC_LESSON_IDS))
+    return jsonify(success=True,certificates=[dict(r) for r in rows],basics_completed=count,total_basics=len(BASIC_LESSON_IDS))
 
 @app.post("/api/exchanges/<int:exchange_id>/complete")
 def complete_exchange(exchange_id):
